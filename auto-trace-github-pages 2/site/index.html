@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AUTO TRACE 全球车企体验更新图谱——基于车企官方 App Store 发布记录的 2026-09-14 数据快照">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <title>AUTO TRACE · 汽车体验更新雷达</title>
+  <style>
+    :root {
+      --ink: #151814;
+      --ink-2: #232720;
+      --paper: #f1f2ec;
+      --surface: #fbfcf8;
+      --line: #daddd3;
+      --line-dark: #343a31;
+      --muted: #73796f;
+      --muted-2: #a8afa3;
+      --signal: #ff5a36;
+      --signal-soft: #fff0eb;
+      --lime: #c9ed62;
+      --lime-soft: #effbd1;
+      --blue: #5477f5;
+      --blue-soft: #edf1ff;
+      --amber: #e8a72a;
+      --amber-soft: #fff7df;
+      --red: #d94b45;
+      --green: #438858;
+      --shadow: 0 16px 50px rgba(23, 29, 20, .09);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      height: 100%;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(84, 119, 245, .28);
+      outline-offset: 2px;
+    }
+    .hidden { display: none !important; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+
+    .app-shell { min-height: 100%; display: grid; grid-template-columns: 224px minmax(0, 1fr); }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; z-index: 20; width: 224px;
+      display: flex; flex-direction: column; padding: 24px 16px 18px;
+      color: #f4f6ef; background: var(--ink);
+    }
+    .brand-mark { display: flex; align-items: center; gap: 11px; padding: 0 8px 28px; }
+    .brand-glyph {
+      position: relative; width: 34px; height: 34px; border-radius: 10px;
+      background: var(--lime); color: var(--ink); font-weight: 900;
+      display: grid; place-items: center; letter-spacing: -2px; transform: rotate(-4deg);
+    }
+    .brand-glyph span { transform: rotate(4deg); }
+    .brand-name { font-size: 14px; font-weight: 800; letter-spacing: .08em; }
+    .brand-name small { display: block; margin-top: 2px; color: #91998c; font-size: 9px; font-weight: 600; letter-spacing: .18em; }
+    .nav-label { padding: 12px 12px 7px; color: #747c71; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .nav-stack { display: grid; gap: 4px; }
+    .nav-btn {
+      width: 100%; min-height: 43px; border: 0; border-radius: 10px; padding: 0 11px;
+      display: flex; align-items: center; gap: 11px; color: #aeb5a9; background: transparent;
+      font-size: 13px; font-weight: 650; text-align: left; cursor: pointer; transition: .18s ease;
+    }
+    .nav-btn:hover { color: white; background: #22271f; }
+    .nav-btn.active { color: white; background: #2a3027; box-shadow: inset 3px 0 0 var(--lime); }
+    .nav-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+    .nav-count {
+      margin-left: auto; min-width: 22px; padding: 2px 6px; border-radius: 99px;
+      background: #3a4036; color: #c7cec2; font-size: 10px; text-align: center;
+    }
+    .nav-btn.active .nav-count { color: var(--ink); background: var(--lime); }
+    .side-status {
+      margin-top: auto; padding: 14px; border: 1px solid var(--line-dark); border-radius: 13px;
+      background: #1c201b;
+    }
+    .status-row { display: flex; align-items: center; gap: 8px; color: #d8ddd3; font-size: 11px; font-weight: 700; }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(201,237,98,.1); }
+    .side-status p { margin: 8px 0 0; color: #838c80; font-size: 10px; line-height: 1.55; }
+
+    .workspace { grid-column: 2; min-width: 0; }
+    .topbar {
+      position: sticky; top: 0; z-index: 15; height: 72px; padding: 0 28px;
+      display: flex; align-items: center; gap: 18px; border-bottom: 1px solid var(--line);
+      background: rgba(241, 242, 236, .9); backdrop-filter: blur(18px);
+    }
+    .page-identity { min-width: 190px; }
+    .page-title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+    .page-subtitle { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .search-wrap { position: relative; width: min(370px, 36vw); margin-left: auto; }
+    .search-wrap svg { position: absolute; left: 12px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); color: #848b81; }
+    .search-input {
+      width: 100%; height: 38px; border: 1px solid #d6d9d0; border-radius: 11px;
+      padding: 0 14px 0 36px; color: var(--ink); background: rgba(255,255,255,.76); font-size: 12px;
+    }
+    .search-input::placeholder { color: #9ca298; }
+    .icon-btn, .primary-btn, .ghost-btn {
+      height: 38px; border-radius: 11px; cursor: pointer; transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .icon-btn:hover, .primary-btn:hover, .ghost-btn:hover { transform: translateY(-1px); }
+    .icon-btn { width: 38px; display: grid; place-items: center; border: 1px solid #d5d9cf; background: var(--surface); }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .primary-btn { border: 0; padding: 0 15px; color: white; background: var(--ink); font-size: 12px; font-weight: 750; }
+    .primary-btn.signal { background: var(--signal); }
+    .primary-btn svg, .ghost-btn svg { width: 15px; height: 15px; vertical-align: -3px; margin-right: 5px; }
+    .ghost-btn { border: 1px solid var(--line); padding: 0 14px; background: var(--surface); font-size: 12px; font-weight: 700; }
+
+    .content { padding: 24px 28px 48px; }
+    .view { display: none; animation: reveal .28s ease; }
+    .view.active { display: block; }
+    @keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .platform-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .segmented { display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: #e8eae3; }
+    .seg-btn { min-width: 108px; height: 34px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer; }
+    .seg-btn.active { color: var(--ink); background: white; box-shadow: 0 3px 10px rgba(30,35,27,.08); }
+    .filter-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .filter-chip {
+      min-height: 31px; padding: 0 11px; border: 1px solid var(--line); border-radius: 999px;
+      color: #686f64; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .filter-chip.active { border-color: var(--ink); color: white; background: var(--ink); }
+    .scan-note { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; }
+    .scan-note .pulse { width: 6px; height: 6px; box-shadow: none; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .metric-card { min-height: 91px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(251,252,248,.78); }
+    .metric-label { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .metric-main { display: flex; align-items: baseline; gap: 7px; margin-top: 7px; }
+    .metric-value { font-size: 25px; font-weight: 840; letter-spacing: -.04em; }
+    .metric-delta { color: var(--green); font-size: 10px; font-weight: 750; }
+    .metric-track { height: 3px; margin-top: 11px; overflow: hidden; border-radius: 99px; background: #e2e5dc; }
+    .metric-track i { display: block; height: 100%; border-radius: inherit; background: var(--signal); }
+
+    .radar-grid { display: grid; grid-template-columns: minmax(360px, .9fr) minmax(520px, 1.35fr); gap: 14px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+    .panel-head { min-height: 54px; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e2e4dd; }
+    .panel-head h2 { margin: 0; font-size: 13px; font-weight: 800; }
+    .panel-head small { color: var(--muted); font-size: 10px; }
+    .panel-head .spacer { flex: 1; }
+    .text-btn { border: 0; padding: 5px 0; color: var(--muted); background: transparent; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .text-btn:hover { color: var(--ink); }
+    .update-list { max-height: calc(100vh - 272px); min-height: 590px; overflow: auto; }
+    .update-card {
+      width: 100%; padding: 16px; border: 0; border-bottom: 1px solid #e8e9e4;
+      display: grid; grid-template-columns: 39px 1fr auto; gap: 11px; color: inherit; background: transparent; text-align: left; cursor: pointer;
+      transition: background .18s ease;
+    }
+    .update-card:hover { background: #f5f6f1; }
+    .update-card.active { background: #f0f3e8; box-shadow: inset 3px 0 0 var(--signal); }
+    .logo {
+      width: 39px; height: 39px; border-radius: 12px; display: grid; place-items: center;
+      color: white; background: var(--logo, #333); font-size: 12px; font-weight: 900; letter-spacing: -.03em;
+    }
+    .update-meta { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 9px; font-weight: 700; }
+    .dot { width: 3px; height: 3px; border-radius: 50%; background: #adb3aa; }
+    .update-title { margin: 6px 0 5px; font-size: 13px; font-weight: 790; line-height: 1.35; }
+    .update-desc { color: #71786e; font-size: 10px; line-height: 1.5; }
+    .impact { align-self: start; padding: 4px 7px; border-radius: 6px; font-size: 8px; font-weight: 850; letter-spacing: .06em; }
+    .impact.high { color: #a73f29; background: #ffe6dc; }
+    .impact.medium { color: #856015; background: var(--amber-soft); }
+    .impact.low { color: #51705a; background: #e9f3e9; }
+    .empty-state { padding: 80px 30px; text-align: center; color: var(--muted); }
+
+    .detail-panel { position: sticky; top: 96px; min-height: 648px; }
+    .detail-top { padding: 19px 19px 0; }
+    .detail-kicker { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .detail-kicker .logo { width: 24px; height: 24px; border-radius: 7px; font-size: 8px; }
+    .detail-title { margin: 13px 0 7px; font-size: 20px; line-height: 1.26; letter-spacing: -.03em; }
+    .detail-summary { margin: 0; color: #62695f; font-size: 11px; line-height: 1.65; }
+    .detail-actions { display: flex; gap: 7px; margin-top: 14px; }
+    .detail-tabs { display: flex; gap: 19px; margin-top: 17px; padding: 0 19px; border-bottom: 1px solid var(--line); }
+    .detail-tab { padding: 0 0 11px; border: 0; border-bottom: 2px solid transparent; color: var(--muted); background: transparent; font-size: 11px; font-weight: 750; cursor: pointer; }
+    .detail-tab.active { color: var(--ink); border-color: var(--signal); }
+    .detail-body { padding: 16px 19px 20px; }
+    .detail-pane { display: none; }
+    .detail-pane.active { display: block; animation: reveal .2s ease; }
+    .compare-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .compare-head span { color: var(--muted); font-size: 9px; font-weight: 700; }
+    .legend { display: flex; gap: 10px; color: var(--muted); font-size: 8px; }
+    .legend i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; margin-right: 3px; }
+    .phones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .capture { padding: 8px; border-radius: 15px; background: #20231f; }
+    .capture-label { display: flex; justify-content: space-between; padding: 2px 3px 8px; color: #aeb6aa; font-size: 8px; }
+    .phone-screen { min-height: 296px; border-radius: 10px; overflow: hidden; background: #f5f5f2; }
+    .phone-status { height: 18px; padding: 5px 9px; display: flex; justify-content: space-between; color: #70766d; font-size: 6px; background: white; }
+    .phone-hero { min-height: 98px; padding: 13px; color: white; background: linear-gradient(145deg, #151b19, #3a4b44); }
+    .phone-hero.light { color: var(--ink); background: linear-gradient(145deg, #dfe7dc, #b7c7b7); }
+    .phone-hero small { opacity: .68; font-size: 6px; }
+    .phone-hero h4 { margin: 7px 0 0; font-size: 13px; line-height: 1.15; }
+    .vehicle-art { position: relative; width: 84%; height: 28px; margin: 13px auto 0; border-radius: 50% 55% 19% 18%; background: linear-gradient(180deg,#e7ebe5,#8d9892); box-shadow: 0 7px 13px rgba(0,0,0,.2); }
+    .vehicle-art::before, .vehicle-art::after { content: ""; position: absolute; bottom: -4px; width: 10px; height: 10px; border-radius: 50%; background: #252b28; }
+    .vehicle-art::before { left: 13px; } .vehicle-art::after { right: 13px; }
+    .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 9px; background: white; }
+    .quick-action { height: 34px; border-radius: 7px; display: grid; place-items: center; background: #f0f1ed; color: #666d64; font-size: 6px; }
+    .screen-section { margin: 8px; padding: 9px; border-radius: 8px; background: white; }
+    .screen-section strong { font-size: 8px; }
+    .screen-section p { margin: 4px 0 0; color: #92988f; font-size: 6px; }
+    .skeleton-row { display: grid; grid-template-columns: 22px 1fr 7px; gap: 7px; align-items: center; margin-top: 8px; }
+    .skeleton-row b { height: 22px; border-radius: 6px; background: #e7e9e3; }
+    .skeleton-row i { height: 5px; border-radius: 99px; background: #dfe2da; }
+    .skeleton-row em { width: 5px; height: 5px; border: solid #a7ada3; border-width: 1px 1px 0 0; transform: rotate(45deg); }
+    .changed-old { outline: 2px dashed var(--red); outline-offset: -3px; position: relative; }
+    .changed-new { outline: 2px solid #4d9e64; outline-offset: -3px; position: relative; }
+    .change-flag { position: absolute; right: 4px; top: 4px; padding: 2px 4px; border-radius: 3px; color: white; background: var(--red); font-size: 5px; font-style: normal; font-weight: 800; z-index: 2; }
+    .changed-new .change-flag { background: var(--green); }
+    .confidence { margin-top: 11px; padding: 10px 11px; border-radius: 9px; display: flex; align-items: center; gap: 9px; background: #f1f3ed; }
+    .confidence strong { font-size: 9px; }
+    .confidence span { margin-left: auto; color: var(--green); font-size: 9px; font-weight: 800; }
+
+    .flow-canvas { padding: 15px; border-radius: 12px; background: #f1f3ed; overflow: auto; }
+    .flow-track { min-width: 510px; display: flex; align-items: center; gap: 7px; }
+    .flow-node { width: 98px; min-height: 72px; padding: 9px; border: 1px solid #cfd3c9; border-radius: 10px; background: white; box-shadow: 0 4px 10px rgba(27,32,24,.04); }
+    .flow-node small { color: var(--muted); font-size: 7px; }
+    .flow-node strong { display: block; margin-top: 7px; font-size: 9px; line-height: 1.35; }
+    .flow-node.changed { border: 2px solid var(--amber); background: var(--amber-soft); }
+    .flow-node.new { border: 2px solid var(--green); background: #eff8ef; }
+    .flow-arrow { flex: 0 0 18px; height: 1px; background: #aab1a6; position: relative; }
+    .flow-arrow::after { content: ""; position: absolute; right: 0; top: -3px; width: 6px; height: 6px; border: solid #aab1a6; border-width: 1px 1px 0 0; transform: rotate(45deg); }
+    .diff-list { display: grid; gap: 8px; margin-top: 13px; }
+    .diff-item { padding: 11px; border: 1px solid var(--line); border-radius: 10px; display: grid; grid-template-columns: 8px 1fr; gap: 9px; background: white; }
+    .diff-item i { width: 8px; height: 8px; margin-top: 3px; border-radius: 2px; background: var(--amber); }
+    .diff-item.new i { background: var(--green); }
+    .diff-item strong { display: block; font-size: 9px; }
+    .diff-item p { margin: 3px 0 0; color: var(--muted); font-size: 8px; line-height: 1.45; }
+    .insight-card { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+    .insight-card + .insight-card { margin-top: 9px; }
+    .insight-label { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+    .insight-card h4 { margin: 8px 0 4px; font-size: 11px; }
+    .insight-card p { margin: 0; color: #676e64; font-size: 9px; line-height: 1.6; }
+
+    .section-heading { display: flex; align-items: end; gap: 14px; margin-bottom: 18px; }
+    .section-heading h1 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+    .section-heading p { max-width: 560px; margin: 0 0 2px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .section-heading .spacer { flex: 1; }
+    .compare-toolbar { padding: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .select-control { height: 34px; padding: 0 30px 0 11px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: white; font-size: 11px; font-weight: 700; }
+    .compare-toolbar span { color: var(--muted); font-size: 10px; }
+    .competitor-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 10px; }
+    .competitor-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
+    .competitor-head { padding: 13px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--line); }
+    .competitor-head .logo { width: 31px; height: 31px; border-radius: 9px; font-size: 9px; }
+    .competitor-head strong { font-size: 11px; }
+    .competitor-head small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .journey-mini { padding: 13px; flex: 1 1 auto; }
+    .journey-step { min-height: 52px; padding: 9px; border-radius: 9px; background: #f0f2eb; }
+    .journey-step + .journey-step { margin-top: 15px; position: relative; }
+    .journey-step + .journey-step::before { content: "↓"; position: absolute; left: 50%; top: -15px; color: #9fa69b; font-size: 10px; }
+    .journey-step b { display: block; font-size: 9px; }
+    .journey-step span { display: block; margin-top: 4px; color: var(--muted); font-size: 7px; }
+    .journey-step.accent { box-shadow: inset 2px 0 0 var(--signal); }
+    .score-strip { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); margin-top: auto; }
+    .score-strip div { padding: 10px 6px; text-align: center; }
+    .score-strip div + div { border-left: 1px solid var(--line); }
+    .score-strip strong { display: block; font-size: 13px; }
+    .score-strip span { color: var(--muted); font-size: 7px; }
+    .finding-bar { margin-top: 12px; padding: 13px 16px; border-radius: 13px; display: flex; align-items: center; gap: 12px; color: #f4f7ef; background: var(--ink); }
+    .finding-bar b { color: var(--lime); font-size: 10px; }
+    .finding-bar p { margin: 0; color: #c3cac0; font-size: 9px; line-height: 1.5; }
+
+    .brand-toolbar { display: flex; gap: 8px; margin-bottom: 13px; }
+    .brand-toolbar .search-wrap { margin-left: 0; width: 330px; }
+    .brand-grid { display: grid; grid-template-columns: repeat(5, minmax(160px, 1fr)); gap: 9px; }
+    .brand-card { padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); transition: transform .18s ease, box-shadow .18s ease; }
+    .brand-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(24,30,21,.07); }
+    .brand-card:hover h3 { color: #F76400; }
+    .brand-card-top { display: flex; align-items: center; gap: 9px; }
+    .brand-card .logo { width: 34px; height: 34px; border-radius: 10px; font-size: 9px; }
+    .brand-card h3 { margin: 0; font-size: 11px; }
+    .brand-card small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+    .brand-platforms { display: flex; gap: 5px; margin-top: 14px; }
+    .platform-tag { padding: 4px 7px; border-radius: 5px; color: #5c6459; background: #eef0e9; font-size: 8px; font-weight: 800; }
+    .platform-tag.live { color: #315b3a; background: #e3f2e1; }
+    .brand-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e6e8e1; display: flex; justify-content: space-between; color: var(--muted); font-size: 8px; }
+
+    .library-grid { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 11px; }
+    .library-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .pattern-preview { height: 132px; padding: 17px; background: var(--preview, #e4ebdf); position: relative; overflow: hidden; }
+    .pattern-window { width: 78%; height: 100%; margin: auto; padding: 10px; border-radius: 10px 10px 0 0; background: rgba(255,255,255,.9); box-shadow: 0 10px 24px rgba(27,32,24,.13); }
+    .pattern-window i { display: block; height: 7px; width: 44%; border-radius: 9px; background: #ced4ca; }
+    .pattern-window b { display: block; height: 31px; margin-top: 12px; border-radius: 7px; background: #ebede8; }
+    .pattern-window b + b { height: 18px; margin-top: 7px; }
+    .library-body { padding: 14px; }
+    .library-meta { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 8px; }
+    .library-body h3 { margin: 8px 0 6px; font-size: 13px; }
+    .library-body p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .tag-row { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 18px; background: rgba(13,16,12,.56); backdrop-filter: blur(5px); }
+    .modal-backdrop.open { display: grid; }
+    .modal { width: min(450px, 100%); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; animation: pop .2s ease; }
+    @keyframes pop { from { opacity: 0; transform: scale(.98) translateY(8px); } }
+    .modal-head { padding: 18px 19px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0; font-size: 15px; }
+    .modal-head button { margin-left: auto; }
+    .modal-body { padding: 19px; }
+    .form-row + .form-row { margin-top: 14px; }
+    .form-row label { display: block; margin-bottom: 6px; color: #545b51; font-size: 10px; font-weight: 750; }
+    .form-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: white; font-size: 11px; }
+    .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .check-card { min-height: 54px; padding: 10px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 10px; background: white; font-size: 10px; font-weight: 700; }
+    .check-card input { accent-color: var(--signal); }
+    .modal-actions { padding: 14px 19px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); background: #f4f5f0; }
+    .toast { position: fixed; z-index: 80; right: 22px; bottom: 22px; padding: 12px 15px; border-radius: 11px; color: white; background: var(--ink); box-shadow: var(--shadow); font-size: 11px; font-weight: 700; transform: translateY(20px); opacity: 0; pointer-events: none; transition: .25s ease; }
+    .toast.show { transform: none; opacity: 1; }
+
+    .demo-ribbon {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 25px; padding: 0 9px;
+      border: 1px solid #e2a893; border-radius: 7px; color: #9f3d25; background: #fff0e9;
+      font-size: 9px; font-weight: 850; letter-spacing: .04em;
+    }
+    .map-toolbar { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .layer-btn {
+      height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px;
+      display: inline-flex; align-items: center; gap: 7px; color: #747a70; background: var(--surface);
+      font-size: 9px; font-weight: 800; cursor: pointer;
+    }
+    .layer-btn i { width: 14px; height: 2px; display: block; background: var(--layer-color); opacity: .35; }
+    .layer-btn.active { color: var(--ink); border-color: #aeb4a8; box-shadow: inset 0 0 0 1px #dfe2d9; }
+    .layer-btn.active i { opacity: 1; }
+    .map-shell {
+      position: relative; min-height: 720px; height: calc(100vh - 146px); border: 1px solid var(--line);
+      border-radius: 18px; overflow: hidden; background: #f9faf6;
+      box-shadow: 0 14px 40px rgba(24,30,21,.06);
+    }
+    .map-shell::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image: radial-gradient(#b9beb3 0.65px, transparent 0.65px);
+      background-size: 18px 18px; opacity: .3;
+    }
+    .map-topline { position: absolute; z-index: 4; left: 17px; top: 15px; display: flex; align-items: center; gap: 8px; }
+    .map-period { height: 31px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: rgba(255,255,255,.9); font-size: 9px; font-weight: 750; }
+    .map-caption { color: var(--muted); font-size: 9px; }
+    .map-summary {
+      position: absolute; z-index: 4; left: 17px; top: 61px; width: 174px; padding: 13px;
+      border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.88); backdrop-filter: blur(10px);
+    }
+    .map-summary-label { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+    .map-summary h3 { margin: 7px 0 4px; font-size: 18px; letter-spacing: -.04em; }
+    .map-summary p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+    .heating-list { display: grid; gap: 7px; margin-top: 12px; }
+    .heating-row { display: grid; grid-template-columns: 20px 1fr auto; gap: 7px; align-items: center; }
+    .heating-row .logo { width: 20px; height: 20px; border-radius: 6px; font-size: 6px; }
+    .heating-row b { font-size: 8px; }
+    .heating-row span:last-child { color: var(--red); font-size: 8px; font-weight: 850; }
+    .map-legend {
+      position: absolute; z-index: 4; left: 17px; bottom: 17px; padding: 11px 12px;
+      border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: rgba(255,255,255,.9);
+      font-size: 8px; line-height: 1.7; backdrop-filter: blur(10px);
+    }
+    .legend-row { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+    .legend-size { display: inline-flex; align-items: end; gap: 2px; width: 28px; }
+    .legend-size i { display: block; border: 1px solid #80877d; border-radius: 50%; }
+    .legend-size i:nth-child(1){width:6px;height:6px}.legend-size i:nth-child(2){width:9px;height:9px}.legend-size i:nth-child(3){width:13px;height:13px}
+    .graph-wrap { position: absolute; inset: 0; overflow: hidden; }
+    #graphSvg { width: 100%; height: 100%; display: block; touch-action: none; }
+    .graph-edge { fill: none; vector-effect: non-scaling-stroke; transition: opacity .2s ease; }
+    .graph-edge.competition { stroke: #b7bcb2; stroke-width: 1.1; opacity: .52; }
+    .graph-edge.group { stroke: #6f8edf; stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .58; }
+    .graph-edge.technology { stroke: #68a97a; stroke-width: 1.2; stroke-dasharray: 2 5; opacity: .58; }
+    .graph-edge.experience { stroke: #e59a54; stroke-width: 1; opacity: .48; }
+    .graph-edge.layer-off { opacity: 0; }
+    .graph-node { cursor: pointer; transform-box: fill-box; transform-origin: center; }
+    .graph-node .halo { fill: none; stroke: var(--node-color); stroke-width: 1.4; opacity: .18; vector-effect: non-scaling-stroke; }
+    .graph-node.hot .halo { animation: halo 2.2s ease-out infinite; }
+    @keyframes halo { 0%{opacity:.34;transform:scale(.88)} 80%,100%{opacity:0;transform:scale(1.35)} }
+    .graph-node .node-shape { fill: #fff; stroke: var(--node-color); stroke-width: 2; vector-effect: non-scaling-stroke; transition: .18s ease; }
+    .graph-node.updated .node-shape { fill: var(--node-color); }
+    .graph-node:hover .node-shape, .graph-node:focus .node-shape { stroke-width: 4; filter: drop-shadow(0 5px 9px rgba(25,31,22,.16)); }
+    .graph-node text { fill: #32372f; font-size: 10px; font-weight: 780; pointer-events: none; paint-order: stroke; stroke: #f9faf6; stroke-width: 3px; stroke-linejoin: round; }
+    .graph-node.updated .node-initial { fill: white; stroke: none; font-size: 7px; font-weight: 900; }
+    .graph-node:not(.updated) .node-initial { fill: var(--node-color); stroke: none; font-size: 7px; font-weight: 900; }
+    .graph-node.dimmed { opacity: .12; }
+    .graph-tooltip {
+      position: absolute; z-index: 8; width: 226px; padding: 12px; border: 1px solid #cfd3c9;
+      border-radius: 12px; background: rgba(255,255,255,.97); box-shadow: 0 14px 34px rgba(24,29,21,.14);
+      pointer-events: none; opacity: 0; transform: translateY(5px); transition: opacity .12s ease, transform .12s ease;
+    }
+    .graph-tooltip.show { opacity: 1; transform: none; }
+    .tooltip-head { display: flex; align-items: center; gap: 8px; }
+    .tooltip-head .logo { width: 27px; height: 27px; border-radius: 8px; font-size: 7px; }
+    .tooltip-head strong { font-size: 10px; }
+    .tooltip-head small { display: block; margin-top: 2px; color: var(--muted); font-size: 7px; }
+    .tooltip-update { margin-top: 10px; padding: 9px; border-radius: 8px; background: #f1f3ed; }
+    .tooltip-update b { display: block; font-size: 9px; }
+    .tooltip-update p { margin: 4px 0 0; color: var(--muted); font-size: 8px; line-height: 1.45; }
+    .tooltip-foot { display: flex; justify-content: space-between; margin-top: 8px; color: var(--muted); font-size: 7px; }
+    .map-controls { position: absolute; z-index: 5; right: 16px; bottom: 17px; display: grid; gap: 5px; }
+    .map-control { width: 31px; height: 31px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.9); font-size: 15px; font-weight: 650; cursor: pointer; }
+    .map-control.fit { font-size: 8px; }
+    .graph-detail {
+      position: absolute; z-index: 10; inset: 0 0 0 auto; width: min(390px, 92%); padding: 18px;
+      border-left: 1px solid var(--line); background: rgba(251,252,248,.97); box-shadow: -18px 0 44px rgba(24,29,21,.09);
+      transform: translateX(102%); transition: transform .28s ease; overflow-y: auto; backdrop-filter: blur(14px);
+    }
+    .graph-detail.open { transform: none; }
+    .graph-detail-head { display: flex; align-items: flex-start; gap: 10px; }
+    .graph-detail-head .logo { width: 42px; height: 42px; }
+    .graph-detail-head h2 { margin: 1px 0 3px; font-size: 18px; }
+    .graph-detail-head p { margin: 0; color: var(--muted); font-size: 8px; }
+    .graph-detail-head .icon-btn { margin-left: auto; }
+    .heat-panel { margin-top: 15px; padding: 12px; border-radius: 11px; color: white; background: var(--ink); }
+    .heat-value { display: flex; align-items: baseline; gap: 8px; }
+    .heat-value strong { font-size: 24px; }
+    .heat-value b { color: var(--lime); font-size: 9px; }
+    .heat-panel p { margin: 4px 0 0; color: #aeb6aa; font-size: 8px; }
+    .spark { width: 100%; height: 40px; margin-top: 9px; }
+    .spark polyline { fill: none; stroke: var(--lime); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .graph-detail .detail-tabs { margin-top: 15px; padding: 0; }
+    .update-evidence { margin-top: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+    .update-evidence-head { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 8px; }
+    .update-evidence h4 { margin: 8px 0 5px; font-size: 11px; }
+    .update-evidence p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+    .evidence-pills { display: flex; gap: 5px; margin-top: 9px; }
+    .source-link { display: inline-block; margin-top: 10px; color: var(--signal); font-size: 8px; font-weight: 800; text-decoration: none; }
+    .source-link:hover { text-decoration: underline; }
+    .evidence-grid { display: grid; grid-template-columns: 78px 1fr; gap: 0; margin: -12px -12px 12px; border-bottom: 1px solid var(--line); }
+    .evidence-grid span, .evidence-grid b { min-height: 34px; padding: 9px 10px; border-top: 1px solid var(--line); font-size: 8px; line-height: 1.45; }
+    .evidence-grid span { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .evidence-grid b { border-left: 1px solid var(--line); font-weight: 700; }
+    .source-summary { margin-top: 10px; padding: 9px 10px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 8px; }
+    .source-summary b { color: var(--signal); font-size: 8px; }
+    .source-summary span { color: var(--muted); text-align: right; }
+    .evidence-chain { margin-top: 12px; border: 1px solid var(--line); background: white; }
+    .evidence-chain-head { min-height: 34px; padding: 9px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; font-weight: 800; }
+    .evidence-source { padding: 10px; display: grid; grid-template-columns: 76px 1fr; gap: 9px; }
+    .evidence-source + .evidence-source { border-top: 1px solid #d9d9d2; }
+    .source-badge { align-self: start; padding: 4px 5px; border: 1px solid var(--ink); color: var(--ink); background: white; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; font-weight: 800; text-align: center; }
+    .source-badge.official { color: white; background: var(--ink); }
+    .source-badge.media { color: #174ec6; border-color: #174ec6; }
+    .source-badge.clue { color: #8a5700; border-color: #b77700; background: #fff6d8; }
+    .evidence-source h5 { margin: 0 0 4px; font-size: 9px; }
+    .evidence-source p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+    .source-meta { margin-top: 6px; display: flex; gap: 7px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; }
+    .demo-note { margin-top: 12px; padding: 10px; border-radius: 9px; color: #885039; background: #fff0e9; font-size: 8px; line-height: 1.5; }
+    .relation-list { display: grid; gap: 7px; margin-top: 11px; }
+    .relation-row { padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; display: flex; align-items: center; gap: 8px; background: white; font-size: 8px; }
+    .relation-row i { width: 20px; height: 2px; flex: 0 0 auto; background: var(--layer-color); }
+    .relation-row span { margin-left: auto; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; text-align: right; }
+
+    @media (max-width: 1120px) {
+      .radar-grid { grid-template-columns: 1fr; }
+      .detail-panel { position: static; }
+      .update-list { max-height: 480px; min-height: 0; }
+      .competitor-grid { grid-template-columns: repeat(2, 1fr); }
+      .brand-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .app-shell { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 12px; flex-direction: row; align-items: center; overflow-x: auto; }
+      .brand-mark { padding: 0 12px 0 0; }
+      .brand-name, .nav-label, .side-status, .nav-count { display: none; }
+      .nav-stack { display: flex; gap: 4px; }
+      .nav-btn { width: auto; white-space: nowrap; padding: 0 10px; }
+      .topbar { height: auto; min-height: 64px; padding: 12px 15px; flex-wrap: wrap; }
+      .page-identity { min-width: 150px; }
+      .search-wrap { width: 100%; order: 3; }
+      .content { padding: 17px 14px 36px; }
+      .platform-row { align-items: flex-start; flex-direction: column; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .radar-grid { grid-template-columns: 1fr; }
+      .phones { grid-template-columns: 1fr; }
+      .competitor-grid, .brand-grid, .library-grid { grid-template-columns: 1fr; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .section-heading .spacer { display: none; }
+      .brand-toolbar { flex-wrap: wrap; }
+      .brand-toolbar .search-wrap { width: 100%; }
+      .map-shell { min-height: 680px; height: calc(100vh - 214px); }
+      .map-summary { display: none; }
+      .map-caption { display: none; }
+    }
+  </style>
+  <style id="swiss-international-style">
+    :root {
+      --ink: #11110f;
+      --ink-2: #22221f;
+      --paper: #f7f7f3;
+      --surface: #ffffff;
+      --line: #11110f;
+      --line-dark: #11110f;
+      --muted: #676760;
+      --muted-2: #9a9a91;
+      --signal: #ff4400;
+      --signal-soft: #ffe8df;
+      --lime: #ff4400;
+      --lime-soft: #ffe8df;
+      --blue: #165dff;
+      --amber: #f0b323;
+      --amber-soft: #fff3cc;
+      --shadow: none;
+      --radius: 0;
+    }
+    *, *::before, *::after { border-radius: 0 !important; }
+    body {
+      background: var(--paper);
+      font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .app-shell { grid-template-columns: 192px minmax(0, 1fr); }
+    .sidebar {
+      width: 192px; padding: 0; color: var(--ink); background: var(--paper);
+      border-right: 1px solid var(--ink);
+    }
+    .brand-mark { height: 72px; padding: 0 16px; gap: 10px; border-bottom: 1px solid var(--ink); }
+    .brand-glyph {
+      width: 26px; height: 26px; color: white; background: var(--signal);
+      font-size: 8px; letter-spacing: -.08em; transform: none;
+    }
+    .brand-glyph span { transform: none; }
+    .brand-name { font-size: 11px; letter-spacing: .12em; }
+    .brand-name small { margin-top: 3px; color: var(--muted); font-size: 6px; letter-spacing: .11em; }
+    .nav-label { padding: 24px 16px 8px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; }
+    .nav-stack { gap: 0; }
+    .nav-btn {
+      min-height: 39px; padding: 0 16px; color: var(--ink); border: 0; border-top: 1px solid transparent;
+      border-bottom: 1px solid #ddddD6; font-size: 11px; font-weight: 600;
+    }
+    .nav-btn:hover { color: var(--ink); background: #eeeee8; transform: none; }
+    .nav-btn.active { color: white; background: var(--ink); box-shadow: none; }
+    .nav-btn.active::after { content: "→"; margin-left: auto; color: var(--signal); font-size: 13px; }
+    .nav-count { padding: 0; color: var(--muted); background: transparent; }
+    .nav-btn.active .nav-count { color: white; background: transparent; }
+    .side-status { margin: auto 0 0; padding: 15px 16px; border: 0; border-top: 1px solid var(--ink); background: transparent; }
+    .status-row { color: var(--ink); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
+    .pulse { width: 6px; height: 6px; background: var(--signal); box-shadow: none; }
+    .side-status p { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; }
+    .workspace { grid-column: 2; }
+    .topbar {
+      height: 72px; padding: 0 22px; gap: 12px; border-bottom: 1px solid var(--ink);
+      background: rgba(247,247,243,.97); backdrop-filter: none;
+    }
+    .page-identity { min-width: 260px; }
+    .page-title { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
+    .page-subtitle { margin-top: 5px; color: var(--muted); font-size: 8px; letter-spacing: .03em; }
+    .search-wrap { width: min(300px, 30vw); }
+    .search-input, .form-input, .select-control, .map-period {
+      border: 1px solid var(--ink); color: var(--ink); background: white; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .icon-btn, .primary-btn, .ghost-btn {
+      border: 1px solid var(--ink); color: var(--ink); background: transparent; font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .primary-btn { color: white; background: var(--ink); }
+    .primary-btn.signal { color: white; background: var(--signal); border-color: var(--signal); }
+    .icon-btn:hover, .primary-btn:hover, .ghost-btn:hover { transform: none; color: white; background: var(--signal); border-color: var(--signal); }
+    .content { padding: 0 22px 36px; }
+    .platform-row {
+      min-height: 57px; margin: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+      border-bottom: 1px solid var(--ink);
+    }
+    .segmented { padding: 0; border: 1px solid var(--ink); background: transparent; }
+    .seg-btn { min-width: 94px; height: 30px; color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; text-transform: uppercase; }
+    .seg-btn + .seg-btn { border-left: 1px solid var(--ink); }
+    .seg-btn.active { color: white; background: var(--ink); box-shadow: none; }
+    .map-toolbar { justify-self: center; gap: 0; }
+    .layer-btn {
+      height: 30px; padding: 0 10px; border-color: #bdbdb5; border-right: 0;
+      color: var(--muted); background: transparent; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; text-transform: uppercase;
+    }
+    .layer-btn:last-child { border-right: 1px solid #bdbdb5; }
+    .layer-btn.active { color: var(--ink); border-color: var(--ink); background: white; box-shadow: inset 0 -3px 0 var(--layer-color); }
+    .demo-ribbon { border-color: var(--signal); color: var(--signal); background: transparent; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; text-transform: uppercase; }
+    .map-shell {
+      height: calc(100vh - 129px); min-height: 650px; border: 0; border-left: 1px solid var(--ink); border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+      background: #fafaf7; box-shadow: none;
+    }
+    .map-shell::before {
+      background-image:
+        linear-gradient(to right, rgba(17,17,15,.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(17,17,15,.055) 1px, transparent 1px);
+      background-size: calc(100% / 12) 100%, 100% 90px; opacity: 1;
+    }
+    .map-topline { left: 14px; top: 14px; gap: 10px; }
+    .map-caption { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; letter-spacing: .04em; }
+    .market-switch { display: inline-grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--ink); background: white; }
+    .market-btn { height: 31px; min-width: 76px; padding: 0 10px; border: 0; color: var(--ink); background: transparent; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8px; font-weight: 700; letter-spacing: .04em; cursor: pointer; }
+    .market-btn + .market-btn { border-left: 1px solid var(--ink); }
+    .market-btn.active { color: white; background: var(--ink); }
+    .map-summary {
+      left: 14px; top: 58px; width: 170px; padding: 12px; border-color: var(--ink); background: rgba(255,255,255,.96); backdrop-filter: none;
+    }
+    .map-summary-label, .metric-label, .insight-label { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
+    .map-summary h3 { margin: 9px 0 5px; font-size: 23px; font-weight: 700; }
+    .map-summary p { font-size: 7px; }
+    .heating-list { gap: 0; margin: 11px -12px -12px; }
+    .heating-row { padding: 7px 12px; border-top: 1px solid #d6d6cf; }
+    .heating-row .logo { width: 17px; height: 17px; font-size: 5px; }
+    .heating-row b, .heating-row span:last-child { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; }
+    .logo { position: relative; overflow: hidden; border: 1px solid #c9c9c2; border-radius: 0 !important; color: var(--ink); background: white !important; }
+    .logo img { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; z-index: 2; }
+    .logo b { position: relative; z-index: 1; font-size: inherit; }
+    .map-legend {
+      left: 0; bottom: 0; padding: 0; display: flex; border: 0; border-top: 1px solid var(--ink); border-right: 1px solid var(--ink);
+      background: var(--paper); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1; text-transform: uppercase;
+    }
+    .legend-row { min-height: 30px; padding: 0 9px; border-right: 1px solid #cfcfc8; white-space: nowrap; }
+    .legend-row:last-child { border-right: 0; }
+    .legend-dot { border: 1px solid var(--ink); }
+    .map-controls { right: 0; bottom: 0; display: flex; gap: 0; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+    .map-control { width: 32px; height: 30px; border: 0; border-right: 1px solid var(--ink); background: var(--paper); }
+    .map-control:last-child { border-right: 0; }
+    .map-control:hover { color: white; background: var(--signal); }
+    .graph-edge.competition { stroke: #a7a7a0; }
+    .graph-node .halo { display: none; }
+    .graph-node.updated .node-shape { fill: #fff; stroke-width: 3; }
+    .node-logo-box { position: relative; width: 100%; height: 100%; display: grid; place-items: center; color: var(--ink); background: white; font-size: 7px; font-weight: 800; }
+    .node-logo-box img { position: absolute; inset: 13%; width: 74%; height: 74%; object-fit: contain; background: white; }
+    .node-logo-box span { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .graph-node text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9px; font-weight: 700; }
+    .graph-node:hover .node-shape, .graph-node:focus .node-shape { filter: none; stroke: #F76400; stroke-width: 3; }
+    .graph-node:hover text, .graph-node:focus text { fill: #F76400; }
+    .graph-tooltip {
+      width: 222px; padding: 11px; border-color: var(--ink); background: white; box-shadow: none; transform: none;
+    }
+    .tooltip-update { margin: 10px -11px -2px; padding: 10px 11px; border-top: 1px solid var(--ink); background: transparent; }
+    .tooltip-update b { font-size: 9px; }
+    .tooltip-update p { font-size: 7px; }
+    .tooltip-foot { padding-top: 8px; border-top: 1px solid #d9d9d2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .graph-detail { width: min(376px,92%); padding: 18px; border-color: var(--ink); background: #fff; box-shadow: none; backdrop-filter: none; }
+    .graph-detail-head h2 { font-size: 19px; }
+    .heat-panel { border: 1px solid var(--ink); color: var(--ink); background: var(--paper); }
+    .heat-value b { color: var(--signal); }
+    .heat-panel p { color: var(--muted); }
+    .spark polyline { stroke: var(--signal); }
+    .detail-tabs { gap: 0; border-bottom-color: var(--ink); }
+    .detail-tab { min-height: 34px; padding: 0 10px; border: 0; border-right: 1px solid #cfcfc8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; text-transform: uppercase; }
+    .detail-tab.active { color: white; background: var(--ink); }
+    .update-evidence, .demo-note, .relation-row, .panel, .brand-card, .library-card, .competitor-card, .compare-toolbar { border-color: var(--ink); box-shadow: none; }
+    .demo-note { color: #8f321b; background: var(--signal-soft); }
+    .capture { background: var(--ink); }
+    .phone-hero, .phone-hero.light { color: var(--ink); background: #deded7; }
+    .vehicle-art { background: #888982; box-shadow: none; }
+    .section-heading { min-height: 105px; margin: 0; padding: 24px 0; border-bottom: 1px solid var(--ink); }
+    .section-heading h1 { font-size: 24px; font-weight: 700; }
+    .compare-toolbar, .brand-toolbar, .filter-row { margin-top: 14px; }
+    .competitor-grid, .brand-grid, .library-grid { gap: 0; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+    .competitor-card, .brand-card, .library-card { border-top: 0; border-left: 0; }
+    .pattern-preview { background: #e9e9e3 !important; }
+    .modal-backdrop { backdrop-filter: none; }
+    .modal { border: 1px solid var(--ink); box-shadow: none; }
+    .toast { border: 1px solid var(--ink); color: var(--ink); background: white; box-shadow: none; }
+    .icon-btn, .primary-btn, .ghost-btn, .seg-btn, .layer-btn, .map-control, .nav-btn, .filter-chip, .detail-tab, .update-card { transition: none; }
+    .graph-node .halo, .view, .modal { animation: none !important; }
+
+    @media (max-width: 900px) {
+      .platform-row { grid-template-columns: 1fr auto; gap: 10px; padding: 10px 0; }
+      .map-toolbar { grid-column: 1 / -1; grid-row: 2; justify-self: start; overflow-x: auto; max-width: 100%; }
+      .map-shell { height: calc(100vh - 172px); }
+    }
+    @media (max-width: 760px) {
+      .app-shell { display: block; }
+      .sidebar { width: 100%; height: 48px; padding: 0; flex-direction: row; border-right: 0; border-bottom: 1px solid var(--ink); }
+      .brand-mark { height: 47px; padding: 0 10px; border-bottom: 0; border-right: 1px solid var(--ink); }
+      .brand-glyph { width: 20px; height: 20px; }
+      .nav-btn { min-height: 47px; border-bottom: 0; border-right: 1px solid #d5d5ce; }
+      .nav-btn.active::after { display: none; }
+      .topbar { min-height: 62px; padding: 10px 12px; }
+      .content { padding: 0 12px 24px; }
+      .map-shell { min-height: 640px; height: calc(100vh - 210px); }
+      .map-legend { max-width: calc(100% - 98px); overflow-x: auto; }
+      .map-caption { display: none; }
+      .market-btn { min-width: 66px; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="sr-only" aria-hidden="true">
+    <!-- IconPark official outline icons, Apache-2.0 -->
+    <symbol id="i-radar" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="24" r="10" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 4v40M4 24h40" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 48 48"><rect x="11" y="4" width="26" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="4"/><path d="M22 10h4M20 38h8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-web" viewBox="0 0 48 48"><path d="M42 18v22a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V18" fill="none" stroke="currentColor" stroke-width="4"/><path d="M6 8a2 2 0 0 1 2-2h32a2 2 0 0 1 2 2v10H6V8Z" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="18" cy="12" r="2" fill="currentColor"/><circle cx="24" cy="12" r="2" fill="currentColor"/></symbol>
+    <symbol id="i-compare" viewBox="0 0 48 48"><rect x="17" y="6" width="14" height="9" fill="none" stroke="currentColor" stroke-width="4"/><rect x="6" y="33" width="14" height="9" fill="none" stroke="currentColor" stroke-width="4"/><rect x="28" y="33" width="14" height="9" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 16v8M13 33v-9h22v9" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 48 48"><path d="M10 44a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h28a2 2 0 0 1 2 2v36a2 2 0 0 1-2 2H10Z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M21 22V4h12v18l-6-6.27L21 22Z" fill="none" stroke="currentColor" stroke-width="4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 48 48"><rect x="5" y="5" width="38" height="38" rx="2" fill="none" stroke="currentColor" stroke-width="4"/><path d="M24 5v38M5 24h38" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-search" viewBox="0 0 48 48"><circle cx="21" cy="21" r="17" fill="none" stroke="currentColor" stroke-width="4"/><path d="m33.22 33.22 8.49 8.49" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 48 48"><path d="M24.06 10 24.02 38M10 24h28" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 48 48"><path d="M42 8v16M6 24v16M42 24A18 18 0 0 0 11.05 11.5M6 24a18 18 0 0 0 30.5 12.95" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+    <symbol id="i-close" viewBox="0 0 48 48"><path d="m8 8 32 32M8 40 40 8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand-mark">
+        <div class="brand-glyph"><span>A//</span></div>
+        <div class="brand-name">AUTO TRACE<small>EXPERIENCE INTELLIGENCE</small></div>
+      </div>
+      <div>
+        <div class="nav-label">MONITOR</div>
+        <nav class="nav-stack">
+          <button class="nav-btn active" data-view="radar"><svg><use href="#i-radar"/></svg>更新雷达<span class="nav-count" id="verifiedCount">20</span></button>
+          <button class="nav-btn" data-view="app"><svg><use href="#i-phone"/></svg>App 体验</button>
+          <button class="nav-btn" data-view="web"><svg><use href="#i-web"/></svg>Web 体验</button>
+        </nav>
+        <div class="nav-label">RESEARCH</div>
+        <nav class="nav-stack">
+          <button class="nav-btn" data-view="compare"><svg><use href="#i-compare"/></svg>横向对比</button>
+          <button class="nav-btn" data-view="library"><svg><use href="#i-bookmark"/></svg>证据与线索<span class="nav-count" id="libraryCount">9</span></button>
+          <button class="nav-btn" data-view="brands"><svg><use href="#i-grid"/></svg>品牌库<span class="nav-count" id="brandCount">40</span></button>
+        </nav>
+      </div>
+      <div class="side-status">
+        <div class="status-row"><span class="pulse"></span>公开数据快照</div>
+        <p id="coverageStatus">40 个品牌 · 国内市场<br>快照日期 2026.09.14</p>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="page-identity">
+          <h1 class="page-title" id="pageTitle">全球车企动态图谱</h1>
+          <div class="page-subtitle" id="pageSubtitle">看见谁在升温，以及哪里刚刚改变</div>
+        </div>
+        <label class="search-wrap" id="globalSearchWrap">
+          <span class="sr-only">搜索品牌、页面或流程</span><svg><use href="#i-search"/></svg>
+          <input class="search-input" id="globalSearch" placeholder="搜索品牌、页面或流程…">
+        </label>
+        <button class="icon-btn" id="refreshBtn" aria-label="查看快照状态"><svg><use href="#i-refresh"/></svg></button>
+        <button class="primary-btn" id="addBrandTop">数据口径</button>
+      </header>
+
+      <div class="content">
+        <section class="view active" id="view-radar">
+          <div class="platform-row">
+            <div class="segmented" aria-label="体验端筛选">
+              <button class="seg-btn active" data-platform="App">App 图谱</button>
+              <button class="seg-btn" data-platform="Web">Web 图谱</button>
+            </div>
+            <div class="map-toolbar" aria-label="关系图层">
+              <button class="layer-btn active" data-layer="competition" style="--layer-color:#9ba298"><i></i>竞品 / 定位（分析）</button>
+              <button class="layer-btn active" data-layer="group" style="--layer-color:#6f8edf"><i></i>集团隶属（公开）</button>
+              <button class="layer-btn" data-layer="technology" style="--layer-color:#68a97a"><i></i>技术合作（公开）</button>
+              <button class="layer-btn" data-layer="experience" style="--layer-color:#e59a54"><i></i>体验相似（算法）</button>
+            </div>
+            <span class="demo-ribbon">一手来源 · 2026.09.14</span>
+          </div>
+          <section class="map-shell" id="mapShell">
+            <div class="map-topline">
+              <div class="market-switch" aria-label="发布市场筛选">
+                <button class="market-btn active" data-market="domestic">国内市场</button>
+                <button class="market-btn" data-market="overseas">海外市场</button>
+              </div>
+              <select class="map-period" id="periodSelect" aria-label="热度周期"><option>最近 90 天</option></select>
+              <span class="map-caption">同品牌按发布市场拆分 · 节点大小代表更新热度</span>
+            </div>
+            <aside class="map-summary">
+              <span class="map-summary-label">UPDATE HEAT</span><h3 id="summaryTitle">20 家有发布</h3><p id="summaryCopy">热度是研究评分，不是品牌官方指标；只采用一手公开发布记录。</p>
+              <div class="heating-list" id="heatingList"></div>
+            </aside>
+            <div class="graph-wrap"><svg id="graphSvg" viewBox="0 0 1200 720" role="img" aria-label="全球汽车品牌动态关系图"></svg></div>
+            <div class="graph-tooltip" id="graphTooltip"></div>
+            <div class="map-legend">
+              <div class="legend-row"><span class="legend-dot" style="--dot:#ff4400"></span>近 7 天</div>
+              <div class="legend-row"><span class="legend-dot" style="--dot:#165dff"></span>近 30 天</div>
+              <div class="legend-row"><span class="legend-dot" style="--dot:#f0b323"></span>近 90 天</div>
+              <div class="legend-row"><span class="legend-dot" style="--dot:#9a9a91"></span>暂无已验证记录</div>
+              <div class="legend-row"><span class="legend-size"><i></i><i></i><i></i></span>节点大小代表热度</div>
+            </div>
+            <div class="map-controls"><button class="map-control" id="zoomIn" aria-label="放大">+</button><button class="map-control" id="zoomOut" aria-label="缩小">−</button><button class="map-control fit" id="zoomFit">适配</button></div>
+            <aside class="graph-detail" id="graphDetail" aria-live="polite"></aside>
+          </div>
+        </section>
+
+        <section class="view" id="view-compare">
+          <div class="section-heading"><div><h1>官方发布横向对比</h1><p>只比较版本号、发布时间与官方披露内容；没有截图基线时不推断页面或流程。</p></div><span class="spacer"></span><button class="primary-btn signal" id="saveCompare">保存当前视图</button></div>
+          <div class="compare-toolbar">
+            <span>证据类型</span>
+            <select class="select-control" id="journeySelect"><option>官方明确披露</option><option>仅维护性说明</option><option>全部官方记录</option></select>
+            <span>iOS · 最近 90 天 · 2026.09.14 快照</span>
+          </div>
+          <div class="competitor-grid" id="competitorGrid"></div>
+          <div class="finding-bar"><b>证据结论</b><p id="compareFinding">仅展示当前发布市场中可由官方版本记录直接核验的变化。</p></div>
+        </section>
+
+        <section class="view" id="view-brands">
+          <div class="section-heading"><div><h1>汽车品牌库</h1><p>覆盖截图中的国内外车企；“已验证”仅表示本快照找到了官方 App Store 发布记录。</p></div><span class="spacer"></span><button class="primary-btn" id="addBrandPage">覆盖说明</button></div>
+          <div class="brand-toolbar">
+            <label class="search-wrap"><span class="sr-only">搜索品牌库</span><svg><use href="#i-search"/></svg><input class="search-input" id="brandSearch" placeholder="搜索品牌…"></label>
+            <button class="filter-chip active" data-market="domestic">国内市场</button><button class="filter-chip" data-market="overseas">海外市场</button>
+          </div>
+          <div class="brand-grid" id="brandGrid"></div>
+        </section>
+
+        <section class="view" id="view-library">
+          <div class="section-heading"><div><h1>多源证据与线索库</h1><p>以 App Store 版本记录为锚点，补充品牌官方媒体、双媒体佐证与高热自媒体线索；不同证据等级不会混为一谈。</p></div><span class="spacer"></span><button class="ghost-btn" id="exportLibrary">数据说明</button></div>
+          <div class="filter-row" style="margin-bottom:14px"><button class="filter-chip active">全部</button><button class="filter-chip">官方确认</button><button class="filter-chip">双媒体佐证</button><button class="filter-chip">待核验线索</button></div>
+          <div class="library-grid" id="libraryGrid"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <section class="modal">
+      <div class="modal-head"><h2 id="addTitle">数据口径</h2><button type="button" class="icon-btn" id="closeModal" aria-label="关闭"><svg><use href="#i-close"/></svg></button></div>
+      <div class="modal-body">
+        <p style="margin-top:0;font-size:11px;line-height:1.7">快照日期：2026-09-14；观察窗：最近 90 天。Apple App Store 版本记录作为时间锚点，补充来源只在发布日期前后 14 天内尝试关联。</p>
+        <p style="font-size:11px;line-height:1.7">证据顺序：品牌官方媒体单一来源即可确认；新闻媒体需两家独立来源相互印证；高热自媒体只显示为“待核验线索”，不影响更新热度或节点颜色。</p>
+        <p style="font-size:11px;line-height:1.7">自媒体按平台、品牌与发布时间归一化，进入同类内容互动量前 10% 且账号具备稳定汽车内容历史，才进入线索池。海外内容生成中文摘要，同时保留原文标题与链接。</p>
+        <p style="font-size:11px;line-height:1.7">更新热度 = 发布时间新鲜度 50% + 官方说明的体验影响/具体度 35% + 90 天官方版本数量 15%（8 次计满）。这是研究评分，不是品牌热度或市场表现。</p>
+        <p style="font-size:11px;line-height:1.7">只追踪 App 与官网体验；车机 OTA 仅在明确改变手机 App 或官网任务流程时关联。当前没有连续的官网历史截图，所以 Web 图谱显示“基线待建立”。</p>
+        <p style="margin-bottom:0;font-size:11px;line-height:1.7">集团隶属与技术合作属于公开事实层；竞品定位与体验相似是研究分析层，并非车企官方结论。</p>
+      </div>
+      <div class="modal-actions"><button type="button" class="primary-btn" id="cancelModal">我知道了</button></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const $ = (selector, scope = document) => scope.querySelector(selector);
+    const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+    const esc = (value) => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
+    const state = { view: 'radar', nav: 'radar', platform: 'App', market: 'domestic', layers: new Set(['competition','group']), zoom: 1 };
+    const webBaseline = () => ({verified:false,recency:'none',area:'基线待建立',latest:'当前没有连续的官方网页历史快照，无法核验真实页面变化。',version:'—',date:'—',source:'',sourceLabel:'',specificity:'不可核验',raw:''});
+    const noAppSample = () => ({verified:false,recency:'none',area:'暂无本次样本',latest:'未纳入本次官方 App Store 更新样本；这不等于品牌没有更新。',version:'—',date:'—',source:'',sourceLabel:'',specificity:'未采样',raw:''});
+    const appGap = (area,latest,source='',sourceLabel='',raw='') => ({verified:false,recency:'none',area,latest,version:'—',date:'—',source,sourceLabel,specificity:'窗口内无可验证消费者 App',raw});
+    const appRelease = (recency,area,latest,version,date,source,sourceLabel,specificity,raw) => ({verified:true,recency,area,latest,version,date,source,sourceLabel,specificity,raw});
+
+    const graphNodes = [
+      {id:'tesla',brand:'Tesla',initials:'T',x:585,y:240,heat:90,releaseCount:14,type:'ev',market:'美国',scope:'overseas',updates:{App:appRelease('month','Robotaxi / 版本维护','Tesla Robotaxi 增加对美国得州奥斯汀 Cybercab 的支持；Tesla 主 App 同期仅说明细微修复与改进。','Robotaxi 26.8.0 / Tesla 4.60.5','2026.09.04','https://apps.apple.com/us/app/tesla-robotaxi/id6744257048','Apple App Store · Tesla, Inc.','明确功能变化','Supports Cybercab in Austin, Texas'),Web:webBaseline()}},
+      {id:'tesla-cn',brand:'Tesla',initials:'T',x:610,y:210,heat:50,releaseCount:8,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','版本维护','中国区 Tesla 主 App 官方仅说明包含细微修复和改进，未披露具体页面或流程。','4.60.5','2026.09.04','https://apps.apple.com/cn/app/tesla/id582007913','Apple App Store 中国区 · Tesla, Inc.','维护性说明','该版本包含细微的修复和改进。'),Web:webBaseline()}},
+      {id:'xiaomi',brand:'小米汽车',initials:'MI',x:500,y:410,heat:56,releaseCount:5,type:'ev',market:'中国',updates:{App:appRelease('week','版本维护','官方仅说明修复一些细微问题，未披露具体页面或流程。','2.9.0','2026.09.08','https://apps.apple.com/cn/app/%E5%B0%8F%E7%B1%B3%E6%B1%BD%E8%BD%A6/id6473663234','Apple App Store · Xiaomi EV Technology','维护性说明','修复｜一些细微问题'),Web:webBaseline()}},
+      {id:'nio',brand:'蔚来',initials:'N',x:365,y:300,heat:54,releaseCount:8,type:'ev',market:'中国',updates:{App:appRelease('month','版本维护','官方仅说明修复已知问题并优化部分功能体验，未披露具体界面。','6.8.1','2026.09.04','https://apps.apple.com/cn/app/%E8%94%9A%E6%9D%A5/id1116095987','Apple App Store · NIO Co., Ltd','维护性说明','优化｜修复一些已知问题并优化部分功能体验'),Web:webBaseline()}},
+      {id:'li',brand:'理想汽车',initials:'LI',x:400,y:455,heat:94,releaseCount:7,type:'ev',market:'中国',updates:{App:appRelease('week','车控首页 / 快捷控制','新增车窗开缝通风、后视镜加热与充电口盖快捷控制，并优化车控首页电量百分比及英文布局。','8.26.0','2026.09.09','https://apps.apple.com/cn/app/%E7%90%86%E6%83%B3%E6%B1%BD%E8%BD%A6-%E4%B8%BA%E5%AE%B6%E5%BA%AD%E6%89%93%E9%80%A0%E7%9A%84%E6%99%BA%E8%83%BD%E7%94%B5%E5%8A%A8%E8%BD%A6/id1370245656','Apple App Store · Beijing Chelixing','明确功能与界面变化','新增｜支持车窗开缝通风功能；新增｜支持快捷控制后视镜加热及充电口盖；优化｜车控首页剩余电量百分比显示；优化｜车控页面英文版布局与显示效果'),Web:webBaseline()}},
+      {id:'aito',brand:'问界',initials:'AITO',x:620,y:500,heat:88,releaseCount:11,type:'ev',market:'中国',updates:{App:appRelease('week','预约提车 / 上门服务','问界服务优化预约提车流程，新增门店上门服务标识与积分明细查询，并升级城市基础数据。','问界服务 1.1.8 / AITO 3.0.2.320','2026.09.11','https://apps.apple.com/cn/app/%E9%97%AE%E7%95%8C%E6%9C%8D%E5%8A%A1/id6751484941','Apple App Store 中国区 · 问界服务 / AITO','明确服务流程变化','优化｜预约提车流程，交付更高效；新增｜门店上门服务标识，积分明细可查；升级｜城市基础数据，信息更精准'),Web:webBaseline()}},
+      {id:'xpeng',brand:'小鹏',initials:'XP',x:280,y:400,heat:58,releaseCount:6,type:'ev',market:'中国',updates:{App:appRelease('week','版本维护','官方仅说明修复部分问题并优化用户体验，未披露具体页面或任务流程。','5.22.1','2026.09.10','https://apps.apple.com/cn/app/%E5%B0%8F%E9%B9%8F%E6%B1%BD%E8%BD%A6/id1331318404','Apple App Store · XPeng Motors','维护性说明','其他｜部分问题修复和用户体验优化'),Web:webBaseline()}},
+      {id:'zeekr',brand:'极氪',initials:'Z',x:700,y:570,heat:76,releaseCount:5,type:'ev',market:'中国',updates:{App:appRelease('month','道路救援 / 售后服务','新增道路救援卡片展示，并调整售后服务工单文案名称。','5.0.5','2026.08.27','https://apps.apple.com/cn/app/%E6%9E%81%E6%B0%AA%E6%B1%BD%E8%BD%A6/id1570277888','Apple App Store · ZEEKR','明确页面元素变化','新增｜道路救援卡片展示；优化｜售后服务工单文案名称'),Web:webBaseline()}},
+      {id:'im',brand:'智己汽车',initials:'IM',x:535,y:585,heat:48,releaseCount:7,type:'ev',market:'中国',updates:{App:appRelease('month','体验维护','官方说明已有功能优化、产品体验更流畅，但未披露具体页面或流程。','3.2.3','2026.08.31','https://apps.apple.com/cn/app/%E6%99%BA%E5%B7%B1%E6%B1%BD%E8%BD%A6-%E6%99%BA%E8%83%BD%E6%97%B6%E4%BB%A3%E5%87%BA%E8%A1%8C%E5%8F%98%E9%9D%A9%E7%9A%84%E5%AE%9E%E7%8E%B0%E8%80%85/id1558973230','Apple App Store 中国区 · 智己汽车','笼统体验说明','已有功能优化，产品体验更流畅'),Web:webBaseline()}},
+      {id:'byd',brand:'BYD',initials:'BYD',x:270,y:230,heat:48,releaseCount:7,type:'ev',market:'中国',updates:{App:appRelease('month','版本维护','官方仅说明优化部分功能体验并修复已知问题，未披露具体页面或流程。','9.16.0','2026.09.03','https://apps.apple.com/cn/app/%E6%AF%94%E4%BA%9A%E8%BF%AA/id493482713','Apple App Store 中国区 · BYD','维护性说明','优化｜优化了部分功能体验；优化｜修复了部分已知问题'),Web:webBaseline()}},
+      {id:'geely',brand:'Geely',initials:'G',x:820,y:610,heat:42,releaseCount:3,type:'ev',market:'中国',updates:{App:appRelease('month','版本维护','吉利汽车官方仅说明提升用户体验并修复部分线上已知问题。','3.55.0','2026.08.28','https://apps.apple.com/cn/app/%E5%90%89%E5%88%A9%E6%B1%BD%E8%BD%A6-%E8%AE%A9%E4%B8%96%E7%95%8C%E5%85%85%E6%BB%A1%E5%90%89%E5%88%A9/id1518762715','Apple App Store 中国区 · 吉利汽车','维护性说明','【优化】提升用户体验；【修复】部分线上已知问题'),Web:webBaseline()}},
+      {id:'rivian',brand:'Rivian',initials:'R',x:340,y:145,heat:91,releaseCount:6,type:'ev',market:'美国',updates:{App:appRelease('month','行程规划 / 安全提醒','新增移动端实时行程：可编辑、协作并预览停靠点；关键警报可使用 iOS Critical Alerts。','3.16.0','2026.09.03','https://apps.apple.com/us/app/rivian/id1570215232','Apple App Store · Rivian Automotive','明确功能与流程变化','Edit trips, collaborate on plans and preview potential pitstops in-app with mobile live trips. Events like triggered alarms or Pet Comfort issues can now use iOS critical alerts.'),Web:webBaseline()}},
+      {id:'ford',brand:'Ford',initials:'F',x:108,y:320,heat:50,releaseCount:6,type:'ev',market:'美国',updates:{App:appRelease('month','版本维护','官方仅说明性能改进与错误修复，未披露具体界面或流程。','6.21.0','2026.09.02','https://apps.apple.com/us/app/ford/id1095418609','Apple App Store · Ford Motor Company','维护性说明','This update includes performance improvements and bug fixes.'),Web:webBaseline()}},
+      {id:'volvo',brand:'Volvo',initials:'V',x:720,y:135,heat:57,releaseCount:3,type:'ev',market:'美国',updates:{App:appRelease('week','版本维护','官方仅说明一般改进与错误修复，未披露具体界面或任务流程。','7.3.0','2026.09.08','https://apps.apple.com/us/app/volvo-cars/id439635293','Apple App Store · Volvo Car Corporation','维护性说明','This update includes general improvements and bug fixes to enhance the overall performance and reliability of your experience.'),Web:webBaseline()}},
+      {id:'bmw',brand:'BMW',initials:'B',x:800,y:250,heat:42,releaseCount:5,type:'ev',market:'美国',updates:{App:appRelease('month','版本维护','官方仅说明错误修复，未披露具体界面或流程。','6.7.5','2026.08.17','https://apps.apple.com/us/app/my-bmw/id1519457734','Apple App Store · BMW North America','维护性说明','We are continuously improving the user experience. This app-update includes bugfixes.'),Web:webBaseline()}},
+      {id:'benz',brand:'Mercedes-Benz',initials:'MB',x:855,y:350,heat:84,releaseCount:3,type:'ev',market:'美国',updates:{App:appRelease('month','Service Due / UI','修复 Service Due 页面的里程问题；官方同时声明有 UI 增强、错误修复和性能改进。','3.70.1','2026.09.06','https://apps.apple.com/us/app/mercedes-benz-usa-ca/id1397873833','Apple App Store · Mercedes-Benz USA','明确页面问题与 UI 增强','This release resolves the mileage issue on the Service Due page. It also includes minor bug fixes, UI enhancements, and performance improvements.'),Web:webBaseline()}},
+      {id:'vw',brand:'Volkswagen',initials:'VW',x:925,y:205,heat:15,releaseCount:0,type:'ev',market:'德国',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'porsche',brand:'Porsche',initials:'P',x:1010,y:275,heat:40,releaseCount:1,type:'ev',market:'美国',scope:'overseas',updates:{App:appRelease('month','版本维护','My Porsche 官方仅说明细微修复和改进，未披露具体界面或流程。','20.2.1','2026.09.02','https://apps.apple.com/us/app/my-porsche/id1542743354','Apple App Store 美国区 · Porsche Cars North America','维护性说明','This release contains minor fixes and improvements.'),Web:webBaseline()}},
+      {id:'lambo',brand:'Lamborghini',initials:'L',x:1090,y:150,heat:15,releaseCount:0,type:'ev',market:'意大利',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'jlr',brand:'Jaguar Land Rover',initials:'JLR',x:900,y:95,heat:15,releaseCount:0,type:'ev',market:'英国',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'toyota',brand:'Toyota',initials:'TY',x:960,y:440,heat:34,releaseCount:1,type:'ev',market:'美国',updates:{App:appRelease('quarter','体验维护','官方表示持续改善易用性，但未列出具体变化；功能因地区与车型而异。','3.5.0','2026.08.14','https://apps.apple.com/us/app/toyota/id1455685357','Apple App Store · Toyota Motor Sales USA','笼统体验说明','We are constantly striving to make our App more user-friendly. Features may vary by region, vehicle, and select markets.'),Web:webBaseline()}},
+      {id:'hyundai',brand:'Hyundai',initials:'H',x:1070,y:400,heat:45,releaseCount:4,type:'ev',market:'美国',updates:{App:appRelease('month','版本维护','官方仅说明错误修复和性能改进，未披露具体页面或流程。','5.4.4','2026.08.26','https://apps.apple.com/us/app/myhyundai-with-bluelink/id893514610','Apple App Store · Hyundai Motor America','维护性说明','Bug fixes and other performance improvements.'),Web:webBaseline()}},
+      {id:'kia',brand:'Kia',initials:'K',x:1090,y:500,heat:72,releaseCount:5,type:'ev',market:'美国',updates:{App:appRelease('month','登录 / 车辆状态','修复燃油状态问题与登录错误信息，并包含一般 UI 改进。','7.31.0','2026.09.01','https://apps.apple.com/us/app/kia-access/id1280548773','Apple App Store · Kia America','明确页面问题与 UI 改进','Fixed issue related to fuel status; fixed issue where error message displayed on login; general UI improvements and fixes.'),Web:webBaseline()}},
+      {id:'subaru',brand:'Subaru',initials:'S',x:990,y:620,heat:15,releaseCount:0,type:'ev',market:'日本',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'maserati',brand:'Maserati',initials:'M',x:1120,y:265,heat:15,releaseCount:0,type:'ev',market:'意大利',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'genesis',brand:'Genesis',initials:'GE',x:1125,y:620,heat:15,releaseCount:0,type:'ev',market:'韩国',updates:{App:noAppSample(),Web:webBaseline()}},
+      {id:'voyah',brand:'岚图',initials:'VOY',x:185,y:380,heat:86,releaseCount:5,type:'ev',market:'中国',updates:{App:appRelease('month','Apple Watch / 灵动岛 / 车模','新增部分车型 Apple Watch 支持与直流充电灵动岛，并优化 3D 车模和空调预约。','6.2.0','2026.09.02','https://apps.apple.com/cn/app/%E5%B2%9A%E5%9B%BE%E6%B1%BD%E8%BD%A6-%E4%B8%AD%E5%9B%BD%E9%AB%98%E7%AB%AF%E6%96%B0%E8%83%BD%E6%BA%90%E6%B1%BD%E8%BD%A6%E9%A2%86%E5%AF%BC%E8%80%85/id1550056350','Apple App Store 中国区 · 岚图汽车','明确功能与界面变化','新增 追光S、泰山X8支持Apple Watch；新增 直流充电支持iOS灵动岛；优化 追光S升级3D车模；优化 部分车型3D车模适配内饰颜色；优化 追光S空调支持多组预约'),Web:webBaseline()}},
+      {id:'nissan',brand:'Nissan',initials:'N',x:895,y:540,heat:31,releaseCount:1,type:'ev',market:'美国',updates:{App:appRelease('quarter','版本维护','MyNISSAN 官方仅说明错误修复与性能改进，未披露具体界面。','6.9.110','2026.07.06','https://apps.apple.com/us/app/mynissan/id1436634482','Apple App Store · Nissan North America','维护性说明','Bug fixes and performance improvements.'),Web:webBaseline()}},
+      {id:'cadillac',brand:'Cadillac',initials:'C',x:105,y:605,heat:72,releaseCount:1,type:'ev',market:'美国',updates:{App:appRelease('week','常用功能入口','官方说明新版更易访问最常使用的功能，但未列出具体入口与路径。','8.17.0','2026.09.08','https://apps.apple.com/us/app/mycadillac/id398605251','Apple App Store · General Motors','明确方向，细节未披露','With the improved myCadillac app, get easier access to the features you use most.'),Web:webBaseline()}},
+      {id:'deepal',brand:'深蓝汽车',initials:'D',x:285,y:560,heat:60,releaseCount:5,type:'ev',market:'中国',updates:{App:appRelease('week','版本维护','官方仅说明优化产品体验并修复已知问题，未披露具体界面。','1.10.2','2026.09.09','https://apps.apple.com/cn/app/%E6%B7%B1%E8%93%9D%E6%B1%BD%E8%BD%A6/id1626931457','Apple App Store · Deepal Automobile Technology','维护性说明','优化产品体验，修复已知问题。'),Web:webBaseline()}},
+      {id:'chery',brand:'奇瑞汽车',initials:'CH',x:185,y:500,heat:88,releaseCount:4,type:'ev',market:'中国',updates:{App:appRelease('week','服务 / 上门取送车','服务模块增加上门取送车能力，并优化部分功能体验。','3.8.1','2026.09.09','https://apps.apple.com/cn/app/%E5%A5%87%E7%91%9E%E6%B1%BD%E8%BD%A6/id1641879610','Apple App Store · Chery Automobile Sales','明确服务流程变化','【服务】：增加上门取送车，服务更便捷；【其他】：部分功能使用体验优化'),Web:webBaseline()}},
+      {id:'leapmotor',brand:'零跑汽车',initials:'LEAP',x:410,y:620,heat:75,releaseCount:13,type:'ev',market:'中国',updates:{App:appRelease('month','绑定车辆','官方明确说明优化绑车体验，并修复已知问题。','1.22.66','2026.08.31','https://apps.apple.com/cn/app/%E9%9B%B6%E8%B7%91/id1391666843','Apple App Store · Leapmotor','明确任务流程方向','优化｜绑车体验；修复｜已知 Bug'),Web:webBaseline()}},
+      {id:'lynk-cn',brand:'领克',initials:'LYNK',x:780,y:665,heat:48,releaseCount:6,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','爱车 / 版本维护','官方说明优化爱车等功能体验并修复部分已知问题。','4.2.7','2026.09.01','https://apps.apple.com/cn/app/%E9%A2%86%E5%85%8B/id1305517667','Apple App Store 中国区 · 领克','明确方向，细节未披露','1、【优化】优化爱车等的功能体验；2、【修复】修复部分已知问题'),Web:webBaseline()}},
+      {id:'lotus-cn',brand:'路特斯',initials:'LOTUS',x:885,y:120,heat:55,releaseCount:5,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','车型内容 / 版本维护','莲花跑车 App 增加 Emira 420 Sport、Eletre 与 Emeya 旗舰车型内容，并优化功能体验。','2.0.58','2026.08.28','https://apps.apple.com/cn/app/%E8%8E%B2%E8%8A%B1%E8%B7%91%E8%BD%A6/id1585765064','Apple App Store 中国区 · Lotus','明确车型内容变化','优化功能体验；全新Emira 420 Sport 上市；Eletre Emeya 黄金双900 旗舰上市'),Web:webBaseline()}},
+      {id:'lotus-overseas',brand:'路特斯',initials:'LOTUS',x:745,y:90,heat:46,releaseCount:1,type:'ev',market:'英国',scope:'overseas',updates:{App:appRelease('quarter','车型内容','Lotus Cars 官方说明新增 Eletre X 混合动力版本内容。','1.3.8','2026.07.22','https://apps.apple.com/gb/app/lotus-cars/id6448967220','Apple App Store 英国区 · Lotus Cars','明确车型内容变化','We have added our new hybrid variant of its Hyper-SUV, Eletre X in this update.'),Web:webBaseline()}},
+      {id:'polestar-cn',brand:'Polestar',initials:'PS',x:750,y:105,heat:28,releaseCount:1,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('quarter','版本维护','极星 Polestar 中国区 App 官方仅说明修复已知问题并优化用户体验。','4.25.0','2026.07.24','https://apps.apple.com/cn/app/%E6%9E%81%E6%98%9Fpolestar/id1502058245','Apple App Store 中国区 · Polestar','维护性说明','1. 修复已知BUG；2. 优化用户体验'),Web:webBaseline()}},
+      {id:'polestar-overseas',brand:'Polestar',initials:'PS',x:645,y:90,heat:50,releaseCount:1,type:'ev',market:'美国',scope:'overseas',updates:{App:appRelease('week','版本维护','海外 Polestar App 官方仅说明性能、稳定性、细微增强与错误修复。','5.12.1','2026.09.10','https://apps.apple.com/us/app/polestar/id1451196635','Apple App Store 美国区 · Polestar','维护性说明','We are constantly making improvements to the Polestar app, with a focus on performance and stability. This version includes several subtle enhancements and bug fixes for a better overall experience.'),Web:webBaseline()}},
+      {id:'smart-cn',brand:'smart',initials:'smart',x:955,y:495,heat:62,releaseCount:4,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('week','车控','smart 中国区 App 官方明确说明优化车控体验。','6.4.35','2026.09.07','https://apps.apple.com/cn/app/smart%E6%B1%BD%E8%BD%A6/id1576161601','Apple App Store 中国区 · smart','明确任务流程方向','优化｜车控体验优化'),Web:webBaseline()}},
+      {id:'smart-overseas',brand:'smart',initials:'smart',x:1030,y:540,heat:51,releaseCount:1,type:'ev',market:'英国',scope:'overseas',updates:{App:appRelease('week','体验维护','Hello smart 官方仅说明技术增强以优化使用体验。','2.3.1','2026.09.14','https://apps.apple.com/gb/app/hello-smart/id6443878915','Apple App Store 英国区 · smart Europe','笼统体验说明','Some technical enhancements to optimize your experience.'),Web:webBaseline()}},
+      {id:'denza-cn',brand:'腾势',initials:'D',x:470,y:665,heat:0,releaseCount:0,type:'ev',market:'中国',scope:'domestic',updates:{App:appGap('90 天无消费者 App 更新','官方 Denza App 最近公开版本早于观察窗；“腾势销冠”属于销售工具，不计入消费者体验样本。','https://apps.apple.com/cn/app/denza/id951636864','Apple App Store 中国区 · Denza（窗口外）','Denza 5.0.2 · 2022.10.10'),Web:webBaseline()}},
+      {id:'fangchengbao-cn',brand:'方程豹',initials:'FCB',x:585,y:665,heat:0,releaseCount:0,type:'ev',market:'中国',scope:'domestic',updates:{App:appGap('未找到独立消费者 App','本次未找到可明确归属于方程豹的独立官方消费者 App；不复用 BYD 主 App 作为品牌更新证据。'),Web:webBaseline()}},
+      {id:'avatr-cn',brand:'阿维塔',initials:'AV',x:525,y:515,heat:49,releaseCount:5,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('week','版本维护','官方仅说明优化产品体验并解决已知问题，未披露具体页面或流程。','4.8.10','2026.09.09','https://apps.apple.com/cn/app/%E9%98%BF%E7%BB%B4%E5%A1%94/id1595742506','Apple App Store 中国区 · AVATR','维护性说明','1、优化了产品体验；2、解决了一些已知问题'),Web:webBaseline()}},
+      {id:'changan-cn',brand:'长安汽车',initials:'CA',x:345,y:535,heat:67,releaseCount:3,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','舒适设置 / 车辆状态 / 小组件','引力域官方说明舒适设置、车辆状态与小组件 HMI 焕新，并优化部分交互体验。','3.1.1','2026.08.10','https://apps.apple.com/cn/app/%E5%BC%95%E5%8A%9B%E5%9F%9F/id1510275218','Apple App Store 中国区 · 长安汽车 / 引力域','明确功能与界面变化','【优化】舒适设置&车辆状态&小组件功能HMI焕新；【优化】部分功能交互体验优化；【其它已知问题修复】'),Web:webBaseline()}},
+      {id:'aion-cn',brand:'广汽埃安',initials:'AION',x:225,y:655,heat:48,releaseCount:6,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('week','体验维护','埃安官方仅说明优化部分功能体验，未披露具体页面或流程。','3.9.20','2026.09.11','https://apps.apple.com/cn/app/%E5%9F%83%E5%AE%89/id1440965279','Apple App Store 中国区 · 广汽埃安','笼统体验说明','优化了一些功能体验~'),Web:webBaseline()}},
+      {id:'geely-overseas',brand:'Geely',initials:'G',x:820,y:610,heat:45,releaseCount:1,type:'ev',market:'英国',scope:'overseas',updates:{App:appRelease('week','体验维护','Geely 海外 App 官方仅说明改善体验，未披露具体功能或流程。','2.0.5','2026.09.10','https://apps.apple.com/gb/app/geely/id6670387299','Apple App Store 英国区 · Geely','笼统体验说明','For a better experience'),Web:webBaseline()}},
+      {id:'lynk-overseas',brand:'领克',initials:'LYNK',logo:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/9d/a1/43/9da143fd-4f91-b2a3-3e6d-a6d50ea7b166/AppIcon-0-1x_U007ephone-0-1-85-220-0.png/100x100bb.jpg',x:745,y:650,heat:0,releaseCount:2,type:'ev',market:'瑞典',scope:'overseas',updates:{App:appRelease('month','体验维护','领克海外 App 官方仅说明改善易用性，未披露具体页面或任务流程。','2.64.0','2026.09.03','https://apps.apple.com/se/app/lynk-co/id1541599159','Apple App Store 瑞典区 · LYNK & CO International AB','笼统体验说明','I den här uppdateringen har vi: Gjort förbättringar för att appen ska bli mer användarvänlig'),Web:webBaseline()}},
+      {id:'zeekr-overseas',brand:'极氪',initials:'Z',logo:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f5/d8/c8/f5d8c8a7-acf1-2574-9228-9968d8f516f0/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg',x:675,y:550,heat:0,releaseCount:6,type:'ev',market:'瑞典',scope:'overseas',updates:{App:appRelease('week','小组件 / 3D 车模','ZEEKR 海外 App 官方明确说明修复小组件与 3D 车模问题。','3.0.9','2026.09.14','https://apps.apple.com/se/app/zeekr/id6448229216','Apple App Store 瑞典区 · ZEEKR EU B.V.','明确页面元素变化','Vad har ändrats i appen: - Felkorrigering av widget och 3D-modell'),Web:webBaseline()}},
+      {id:'chery-overseas',brand:'奇瑞汽车',initials:'CH',logo:'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/96/a4/7b/96a47b44-0919-c5ec-0592-81f747658e1f/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/100x100bb.jpg',x:225,y:520,heat:0,releaseCount:4,type:'ev',market:'欧洲',scope:'overseas',updates:{App:appRelease('month','版本维护','CHERY-Europe 官方仅说明修复已知问题并优化使用体验，未披露具体页面或任务流程。','1.0.8','2026.09.02','https://apps.apple.com/de/app/chery-europe/id6746529474','Apple App Store 欧洲区 · CHERY-Europe','维护性说明','Fix known issues and optimize user experience.'),Web:webBaseline()}},
+      {id:'bmw-cn',brand:'BMW',initials:'B',x:790,y:250,heat:45,releaseCount:4,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','版本维护','My BMW 中国区官方仅说明优化产品体验并修复已知问题。','6.8.2','2026.08.25','https://apps.apple.com/cn/app/my-bmw/id1527576076','Apple App Store 中国区 · BMW China Services','维护性说明','优化产品体验，修复已知问题。'),Web:webBaseline()}},
+      {id:'benz-cn',brand:'Mercedes-Benz',initials:'MB',x:870,y:350,heat:82,releaseCount:4,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('week','任务中心 / 主题中心','中国区 App 全面升级任务中心，并新增主题中心与可切换主题皮肤。','1.70.1','2026.09.08','https://apps.apple.com/cn/app/%E6%A2%85%E8%B5%9B%E5%BE%B7%E6%96%AF-%E5%A5%94%E9%A9%B0/id1488075416','Apple App Store 中国区 · Mercedes-Benz China','明确功能与界面变化','「任务中心」全面升级；新增「主题中心」功能，专属风格随心切换。'),Web:webBaseline()}},
+      {id:'volvo-cn',brand:'Volvo',initials:'V',x:690,y:125,heat:83,releaseCount:4,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('week','车控 / 通知管理','XC70 用车页新增 NPA 激活提醒，并优化推送通知管理。','5.70.1','2026.09.08','https://apps.apple.com/cn/app/%E6%B2%83%E5%B0%94%E6%B2%83%E6%B1%BD%E8%BD%A6/id1587570076','Apple App Store 中国区 · Volvo Cars','明确功能与界面变化','车控｜XC70用车页面新增NPA激活提醒；通用｜优化推送通知管理功能；其他｜修复部分已知问题'),Web:webBaseline()}},
+      {id:'porsche-cn',brand:'Porsche',initials:'P',x:1030,y:275,heat:78,releaseCount:3,type:'ev',market:'中国',scope:'domestic',updates:{App:appRelease('month','事故救援 / 智慧互联 / 经销商咨询','新增事故救援、智慧互联入口，并在经销商及车辆详情页增加企业微信咨询入口。','13.1.0','2026.08.25','https://apps.apple.com/cn/app/%E4%BF%9D%E6%97%B6%E6%8D%B7/id1492218590','Apple App Store 中国区 · Porsche China','明确功能与流程变化','新增事故救援；新增智慧互联入口；经销商主页、现车和易手车详情页增加企业微信入口。'),Web:webBaseline()}}
+    ];
+
+    const enrichmentEvidence = {
+      nio:[
+        {tier:'media',status:'corroborated',date:'2026.06.30',version:'6.6.6',source:'IT之家',title:'iOS 闪退与蓝牙钥匙失效',summary:'报道记录了苹果版 App 打开即闪退、蓝牙钥匙无法解锁；同日 App Store 的 6.6.6 版本仅写“修复已知问题”。',url:'https://www.ithome.com/0/970/476.htm'},
+        {tier:'media',status:'corroborated',date:'2026.07.02',version:'6.6.6',source:'澎湃新闻',title:'蔚来客服确认 6.6.6 修复闪退',summary:'蔚来客服向媒体确认问题属于 App Bug，6 月 30 日发布的新版本已解决闪退问题。',url:'https://www.thepaper.cn/newsDetail_forward_33501653'}
+      ],
+      tesla:[
+        {tier:'official',status:'confirmed',date:'2026.09.03',version:'Robotaxi 26.8.0',source:'Tesla Robotaxi',title:'官网同步上线 Cybercab 乘车入口',summary:'Tesla 官方 Robotaxi 页面已将 Cybercab 纳入当前叫车体验，与 App Store 的 Cybercab 支持说明相互对应。',url:'https://www.tesla.com/robotaxi'},
+        {tier:'media',status:'corroborated',date:'2026.09.03',version:'Robotaxi 26.8.0',source:'Drive Tesla Canada',title:'车辆选择与识别反馈',summary:'报道指出 App 可在 Cybercab 与 Model Y 间显示车型选择，并用车身灯带颜色帮助乘客识别来车。',url:'https://driveteslacanada.ca/news/tesla-cybercab-downtown-austin-event/'},
+        {tier:'media',status:'corroborated',date:'2026.09.03',version:'Robotaxi 26.8.0',source:'TeslaMagz',title:'座位数、灯带与寻车操作',summary:'第二家独立媒体同样记录车型与座位数提示、灯带颜色匹配，以及闪灯和鸣笛寻车操作。',url:'https://teslamagz.com/news/teslas-robotaxi-app-now-lists-cybercab-alongside-model-y-in-austin/amp/'},
+        {tier:'clue',status:'clue',date:'2026.09.08',version:'Tesla 4.60.5',source:'Tesla App Updates (iOS)',title:'高热拆包线索：服务与能源功能',summary:'账号称拆包发现 3D 轮毂盖切换、V2H 过载提醒、服务中心 Robotaxi 回程选项等资源；代码或资源存在不等于功能已经上线。',engagement:'12.7万浏览 · 26.3K 关注者',url:'https://www.sotwe.com/tesla_app_ios?lang=en'}
+      ]
+    };
+    const enrichmentHeadline = {
+      nio:'补充定位：历史版本 6.6.6 修复 iOS 闪退与蓝牙钥匙失效',
+      tesla:'补充定位：Cybercab 叫车界面获官方与双媒体佐证；主 App 另有待核验拆包线索'
+    };
+
+    const domesticBaseIds = new Set(['xiaomi','nio','li','aito','xpeng','zeekr','im','byd','geely','voyah','deepal','chery','leapmotor']);
+    graphNodes.forEach(node => { if(!node.scope) node.scope = domesticBaseIds.has(node.id) ? 'domestic' : 'overseas'; });
+    const marketLabel = scope => scope === 'domestic' ? '国内市场' : '海外市场';
+    const brandInstanceCount = graphNodes.reduce((counts,node) => counts.set(node.brand,(counts.get(node.brand)||0)+1),new Map());
+    const nodeName = node => brandInstanceCount.get(node.brand)>1 ? `${node.brand} · ${node.scope==='domestic'?'国内':'海外'}` : node.brand;
+    const visibleGraphNodes = () => graphNodes.filter(node => node.scope === state.market);
+
+    const snapshotTime=Date.parse('2026-09-14T00:00:00Z');
+    const specificityPoints={
+      '明确功能与界面变化':35,'明确功能与流程变化':35,'明确服务流程变化':35,
+      '明确页面问题与 UI 增强':28,'明确页面元素变化':28,'明确页面问题与 UI 改进':28,
+      '明确功能变化':32,'明确车型内容变化':22,'明确方向，细节未披露':22,'明确任务流程方向':22,'维护性说明':10,'笼统体验说明':8
+    };
+    function heatBreakdown(node){
+      const update=node.updates.App;
+      if(!update.verified)return {recency:0,impact:0,volume:0,total:0};
+      const days=Math.max(0,Math.round((snapshotTime-Date.parse(`${update.date.replaceAll('.','-')}T00:00:00Z`))/86400000));
+      const recency=Math.max(0,Math.round(50*(1-days/90)));
+      const impact=specificityPoints[update.specificity]||0;
+      const volume=Math.round(15*Math.min(node.releaseCount,8)/8);
+      return {recency,impact,volume,total:recency+impact+volume};
+    }
+    graphNodes.forEach(node=>{node.heat=heatBreakdown(node).total;});
+
+    const brands = graphNodes.map(n => [n.brand,n.initials,'#ffffff',n.market]);
+    const updates = graphNodes.filter(n => n.updates.App.verified).map(n => ({id:n.id,platform:'App',brand:n.brand,initials:n.initials,color:n.color,time:n.updates.App.date,date:n.updates.App.date,version:n.updates.App.version,title:n.updates.App.area,desc:n.updates.App.latest,impact:n.heat>=85?'high':n.heat>=70?'medium':'low',confirmed:true,source:n.updates.App.source}));
+
+    const graphEdges = [
+      ['tesla','rivian','competition'],['tesla','bmw','competition'],['tesla-cn','nio','competition'],['tesla-cn','li','competition'],['tesla-cn','xpeng','competition'],['tesla-cn','byd','competition'],['xiaomi','aito','competition'],['xiaomi','xpeng','competition'],['nio','li','competition'],['nio','xpeng','competition'],['li','aito','competition'],['aito','avatr-cn','competition'],['xpeng','im','competition'],['zeekr','im','competition'],['byd','xpeng','competition'],['byd','aion-cn','competition'],['deepal','chery','competition'],['deepal','leapmotor','competition'],['avatr-cn','zeekr','competition'],['ford','rivian','competition'],['ford','tesla','competition'],['ford','cadillac','competition'],['bmw','benz','competition'],['bmw','porsche','competition'],['benz','vw','competition'],['volvo','jlr','competition'],['toyota','hyundai','competition'],['toyota','nissan','competition'],['hyundai','kia','competition'],['bmw','genesis','competition'],['bmw-cn','benz-cn','competition'],['volvo-cn','polestar-cn','competition'],['porsche-cn','lotus-cn','competition'],['smart-cn','zeekr','competition'],['lotus-overseas','porsche','competition'],['polestar-overseas','volvo','competition'],['smart-overseas','bmw','competition'],['zeekr-overseas','polestar-overseas','competition'],['zeekr-overseas','smart-overseas','competition'],['chery-overseas','geely-overseas','competition'],['lynk-overseas','volvo','competition'],
+      ['zeekr','geely','group'],['lynk-cn','geely','group'],['lotus-cn','geely','group'],['polestar-cn','geely','group'],['smart-cn','geely','group'],['smart-cn','benz-cn','group'],['denza-cn','byd','group'],['fangchengbao-cn','byd','group'],['deepal','changan-cn','group'],['avatr-cn','changan-cn','group'],['geely-overseas','volvo','group'],['lotus-overseas','geely-overseas','group'],['polestar-overseas','geely-overseas','group'],['smart-overseas','benz','group'],['lynk-overseas','geely-overseas','group'],['zeekr-overseas','geely-overseas','group'],['vw','porsche','group'],['vw','lambo','group'],['hyundai','kia','group'],['hyundai','genesis','group'],
+      ['vw','rivian','technology'],['toyota','subaru','technology'],
+      ['tesla','rivian','experience'],['tesla-cn','li','experience'],['nio','li','experience'],['xiaomi','deepal','experience'],['chery','leapmotor','experience'],['bmw','benz','experience'],['bmw-cn','benz-cn','experience'],['lotus-cn','porsche-cn','experience'],['lynk-overseas','zeekr-overseas','experience']
+    ];
+
+    const libraryItems = [
+      {type:'明确功能与界面变化',date:'2026.09.09',title:'理想汽车 · 车控首页与快捷控制',desc:'新增车窗开缝通风、后视镜加热与充电口盖快捷控制；优化电量百分比与英文布局。',tags:['理想汽车','8.26.0'],color:'#f2f2ec',source:'https://apps.apple.com/cn/app/%E7%90%86%E6%83%B3%E6%B1%BD%E8%BD%A6-%E4%B8%BA%E5%AE%B6%E5%BA%AD%E6%89%93%E9%80%A0%E7%9A%84%E6%99%BA%E8%83%BD%E7%94%B5%E5%8A%A8%E8%BD%A6/id1370245656'},
+      {type:'明确功能与流程变化',date:'2026.09.03',title:'Rivian · 移动端实时行程',desc:'可在 App 内编辑行程、协作计划、预览停靠点，并支持关键警报。',tags:['Rivian','3.16.0'],color:'#f2f2ec',source:'https://apps.apple.com/us/app/rivian/id1570215232'},
+      {type:'明确服务流程变化',date:'2026.09.09',title:'奇瑞汽车 · 上门取送车',desc:'官方发布说明确认服务模块增加上门取送车能力。',tags:['奇瑞汽车','3.8.1'],color:'#f2f2ec',source:'https://apps.apple.com/cn/app/%E5%A5%87%E7%91%9E%E6%B1%BD%E8%BD%A6/id1641879610'},
+      {type:'明确页面问题',date:'2026.09.06',title:'Mercedes-Benz · Service Due',desc:'修复 Service Due 页面的里程问题，并声明包含 UI 增强。',tags:['Mercedes-Benz','3.70.1'],color:'#f2f2ec',source:'https://apps.apple.com/us/app/mercedes-benz-usa-ca/id1397873833'},
+      {type:'明确页面元素变化',date:'2026.08.27',title:'极氪 · 道路救援卡片',desc:'新增道路救援卡片展示，并调整售后服务工单文案。',tags:['极氪','5.0.5'],color:'#f2f2ec',source:'https://apps.apple.com/cn/app/%E6%9E%81%E6%B0%AA%E6%B1%BD%E8%BD%A6/id1570277888'},
+      {type:'明确任务方向',date:'2026.08.31',title:'零跑汽车 · 绑车体验',desc:'官方说明确认本版优化绑车体验，但未披露具体步骤。',tags:['零跑汽车','1.22.66'],color:'#f2f2ec',source:'https://apps.apple.com/cn/app/%E9%9B%B6%E8%B7%91/id1391666843'},
+      {type:'双媒体交叉核验',status:'corroborated',date:'2026.06.30',title:'蔚来 6.6.6 · iOS 闪退修复',desc:'App Store 只写“修复已知问题”；IT之家与澎湃新闻结合蔚来客服回应，将本次更新定位为 iOS 闪退及蓝牙钥匙失效修复。',tags:['蔚来','6.6.6','3 个有效来源'],color:'#eef3ff',source:'https://www.ithome.com/0/970/476.htm',sourceLabel:'查看 IT之家',extraSources:[{label:'查看澎湃新闻',url:'https://www.thepaper.cn/newsDetail_forward_33501653'}]},
+      {type:'品牌官方 + 双媒体',status:'confirmed',date:'2026.09.03',title:'Tesla Robotaxi · Cybercab 叫车体验',desc:'官网与两家独立媒体补充了车型选择、座位数提示、灯带匹配和寻车操作；具体 UI 仍需后续截图基线核对。',tags:['Tesla','26.8.0','4 个有效来源'],color:'#eef3ff',source:'https://www.tesla.com/robotaxi',sourceLabel:'查看 Tesla 官方页',extraSources:[{label:'Drive Tesla Canada',url:'https://driveteslacanada.ca/news/tesla-cybercab-downtown-austin-event/'},{label:'TeslaMagz',url:'https://teslamagz.com/news/teslas-robotaxi-app-now-lists-cybercab-alongside-model-y-in-austin/amp/'}]},
+      {type:'高热自媒体线索',status:'clue',date:'2026.09.08',title:'Tesla 4.60.5 · 拆包功能线索',desc:'账号称发现 3D 轮毂盖、V2H 过载提醒与服务中心 Robotaxi 回程选项；12.7 万浏览，但尚无官方或双媒体确认，不计入热度。',tags:['Tesla','4.60.5','待官方复核'],color:'#fff6d8',source:'https://www.sotwe.com/tesla_app_ios?lang=en',sourceLabel:'查看线索原页'}
+    ];
+
+    const recencyColor = {week:'#ff4400', month:'#165dff', quarter:'#f0b323', none:'#9a9a91'};
+    const brandLogoUrls = {
+      'Tesla':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a3/94/dd/a394dd9c-c513-ed5e-a84a-ee015dab7a25/ProdAppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      '小米汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/7a/e4/1c/7ae41cee-ef6f-634d-6efb-14131e2dccc6/AppIcon-0-0-1x_U007emarketing-0-8-0-sRGB-85-220.png/100x100bb.jpg',
+      '蔚来':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c5/a2/e5/c5a2e5f0-31a3-993f-826a-ab3201d3eaf5/AppIcon-0-0-1x_U007emarketing-0-0-0-6-0-0-0-85-220.png/100x100bb.jpg',
+      '理想汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/5e/1e/50/5e1e5084-618d-29c9-f093-a508729b0eec/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      '问界':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/59/e9/06/59e9062e-35b0-95ba-cd9a-29aeecc02411/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg',
+      '小鹏':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/aa/49/a7/aa49a739-d50f-5f02-d197-5af5dda42930/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg',
+      '极氪':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2a/a3/36/2aa336ac-6992-f1e9-1fa2-f08f333b1c5e/ZeekrAppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/100x100bb.jpg',
+      'Rivian':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e5/eb/a8/e5eba89f-3a92-a079-0bc7-7ea8599cbf63/RivianIcon-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/100x100bb.jpg',
+      'Ford':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b5/95/06/b5950628-2009-b3e4-69c4-ac6c56946b1b/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/100x100bb.jpg',
+      'Volvo':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/13/c8/27/13c8277c-8c32-94b5-4986-77a9cc8283d4/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg',
+      'BMW':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/23/03/67/2303670b-651b-6ae6-761f-3e0a7c6e8334/bmwappstore-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg',
+      'Mercedes-Benz':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/7a/55/ff/7a55ffa3-ae76-5551-98b8-9717777e5593/MyStarAppIcon-0-0-1x_U007ephone-0-1-0-sRGB-0-85-220.jpeg/100x100bb.jpg',
+      'Toyota':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/4b/5a/c9/4b5ac913-352c-af95-d9bc-98c40a645e50/AppIcon-0-0-1x_U007emarketing-0-8-0-sRGB-85-220.png/100x100bb.jpg',
+      'Hyundai':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1e/5e/16/1e5e168f-f710-f643-6037-ba756e7766e6/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      'Kia':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b8/2b/5c/b82b5c64-0005-7c64-6198-d59be0bda28f/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      'Nissan':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/0c/97/f3/0c97f36d-3471-9aa9-c2ce-7b4d2a4eacb3/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/100x100bb.jpg',
+      'Cadillac':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/a0/03/da/a003da5d-dac2-bfea-46cf-0eb4a49073f3/AppIcon-cadillac-0-0-1x_U007ephone-0-1-0-85-220.png/100x100bb.jpg',
+      '深蓝汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/89/5e/1c/895e1c8a-0d0f-1759-0316-8ecb14a60a2e/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      '奇瑞汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8c/81/08/8c810824-fb38-9a12-b22d-34584c082db8/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/100x100bb.jpg',
+      '零跑汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/85/24/50/85245077-f82b-57d3-ba5c-f5af8fd3840a/AppIcon-0-0-1x_U007emarketing-0-6-0-sRGB-85-220.png/100x100bb.jpg',
+      '智己汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ff/8c/08/ff8c0852-59c8-0ab0-c3c1-7827655ba27d/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/100x100bb.jpg',
+      'BYD':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/03/66/7b/03667bf8-4c51-da05-1353-d805214c08c9/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      'Geely':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9b/17/a8/9b17a8f2-8ba6-7f15-dfc7-55fc9f744c7a/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/100x100bb.jpg',
+      '领克':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/5c/0f/3a/5c0f3a63-df46-50d4-f0fb-f36af0759bd0/AppIconNew-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      '路特斯':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c9/7b/df/c97bdf14-3af3-417a-1b05-ca6f0320feb2/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/100x100bb.jpg',
+      'Polestar':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/35/5a/ff/355aff77-8908-e5ae-f8ff-3521263b3384/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/100x100bb.jpg',
+      'smart':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b3/2c/b1/b32cb185-3787-443f-3f4a-35b1cc03d395/AppIcon-0-0-1x_U007emarketing-0-6-0-0-85-220.png/100x100bb.jpg',
+      '腾势':'https://www.denza.com/favicon.ico','方程豹':'https://www.fangchengbao.com/favicon.ico',
+      '阿维塔':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c5/c0/94/c5c0943f-8e90-098a-7e81-a584bc0f9f0c/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/100x100bb.jpg',
+      '长安汽车':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1a/28/b8/1a28b802-6494-7e5d-4469-cceb3034069f/AppIcon-0-0-1x_U007emarketing-0-6-0-sRGB-85-220.png/100x100bb.jpg',
+      '广汽埃安':'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1a/77/20/1a772063-188a-9e7a-2e06-29f577bf0d07/AppIcon-0-0-1x_U007emarketing-0-6-0-sRGB-85-220.jpeg/100x100bb.jpg',
+      'Volkswagen':'https://www.vw.com/favicon.ico','Porsche':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/d3/70/16/d3701682-a110-3f2c-01d6-413d1d5c3137/default-0-0-1x_U007ephone-0-1-85-220.png/100x100bb.jpg','Lamborghini':'https://www.lamborghini.com/favicon.ico','Jaguar Land Rover':'https://www.jaguarlandrover.com/favicon.ico','Subaru':'https://www.subaru.com/favicon.ico','Maserati':'https://www.maserati.com/favicon.ico','Genesis':'https://www.genesis.com/favicon.ico','岚图':'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2a/6b/64/2a6b640a-339f-69e0-779c-8d8b1f927e42/AppIcon-0-0-1x_U007ephone-0-1-0-0-85-220.png/100x100bb.jpg'
+    };
+    const brandWebsites = {
+      '小米汽车':'https://www.xiaomiev.com/','蔚来':'https://www.nio.cn/','理想汽车':'https://www.lixiang.com/','问界':'https://aito.auto/','小鹏':'https://www.xiaopeng.com/','极氪':'https://www.zeekr.com/','智己汽车':'https://www.immotors.com/','BYD':'https://www.byd.com/cn','岚图':'https://www.voyah.com.cn/','深蓝汽车':'https://www.deepal.com.cn/','奇瑞汽车':'https://www.chery.cn/','零跑汽车':'https://www.leapmotor.com/','领克':'https://www.lynkco.com.cn/','腾势':'https://www.denza.com/','方程豹':'https://www.fangchengbao.com/','阿维塔':'https://www.avatr.com/','长安汽车':'https://www.changan.com.cn/','广汽埃安':'https://www.aion.com.cn/','Rivian':'https://rivian.com/','Ford':'https://www.ford.com/','Volkswagen':'https://www.vw.com/en.html','Lamborghini':'https://www.lamborghini.com/en-en','Jaguar Land Rover':'https://www.jlr.com/','Toyota':'https://www.toyota.com/','Hyundai':'https://www.hyundaiusa.com/us/en','Kia':'https://www.kia.com/us/en','Subaru':'https://www.subaru.com/','Maserati':'https://www.maserati.com/us/en','Genesis':'https://www.genesis.com/us/en/home','Nissan':'https://www.nissanusa.com/','Cadillac':'https://www.cadillac.com/'
+    };
+    const marketWebsites = {
+      'tesla-cn':'https://www.tesla.cn/','tesla':'https://www.tesla.com/',
+      'geely':'https://www.geely.com/','geely-overseas':'https://global.geely.com/',
+      'volvo-cn':'https://www.volvocars.com.cn/','volvo':'https://www.volvocars.com/us/',
+      'bmw-cn':'https://www.bmw.com.cn/zh/index.html','bmw':'https://www.bmwusa.com/',
+      'benz-cn':'https://www.mercedes-benz.com.cn/','benz':'https://www.mbusa.com/en/home',
+      'porsche-cn':'https://www.porsche.cn/china/zh/','porsche':'https://www.porsche.com/usa/',
+      'lotus-cn':'https://www.lotuscars.com.cn/','lotus-overseas':'https://www.lotuscars.com/',
+      'polestar-cn':'https://www.polestar.cn/','polestar-overseas':'https://www.polestar.com/',
+      'smart-cn':'https://www.smart.cn/','smart-overseas':'https://uk.smart.com/en/',
+      'lynk-overseas':'https://www.lynkco.com/sv-se/','zeekr-overseas':'https://www.zeekr.eu/',
+      'chery-overseas':'https://eu-chery.cheryinternational.com/'
+    };
+    const officialWebsiteUrl = node => marketWebsites[node.id] || brandWebsites[node.brand] || '';
+    function logoHTML(item) {
+      const url=item.logo||brandLogoUrls[item.brand], fallback=esc(item.initials||item.brand.slice(0,2));
+      return `<span class="logo" style="--logo:${item.color||'#fff'}"><b>${fallback}</b>${url?`<img src="${url}" alt="" loading="lazy" onload="this.previousElementSibling.hidden=true" onerror="this.remove()">`:''}</span>`;
+    }
+    function graphShape(node, radius, color) {
+      const common = `class="node-shape" style="--node-color:${color}"`;
+      if (node.type === 'tech') return `<path ${common} d="M 0 ${-radius} L ${radius} 0 L 0 ${radius} L ${-radius} 0 Z"/>`;
+      if (node.type === 'legacy') return `<rect ${common} x="${-radius}" y="${-radius}" width="${radius*2}" height="${radius*2}" rx="${Math.max(5,radius*.28)}"/>`;
+      return `<circle ${common} r="${radius}"/>`;
+    }
+    const recencyLabel = {week:'近 7 天',month:'近 30 天',quarter:'近 90 天',none:'暂无已验证记录'};
+    const layerLabel = {competition:'研究分析 · 竞品 / 定位',group:'公开事实 · 集团隶属',technology:'公开事实 · 技术合作',experience:'规则计算 · 体验相似'};
+    function nodeUpdate(node) {
+      const update=node.updates[state.platform];
+      if(state.platform!=='Web') return update;
+      return {...update,area:'官网页面基线',latest:`已核验 ${nodeName(node)} 的对应市场官网入口；尚未形成第二个时间点的页面与任务流程快照，因此不生成变化结论。`,version:'基线 01',date:'2026.09.14',source:officialWebsiteUrl(node),sourceLabel:`${marketLabel(node.scope)} · 品牌官方官网`,specificity:'基线待建立',raw:'监测范围：主页、车型页、配置器、预约试驾及公开登录入口。需要下一次同路径快照后才能确认页面或交互变化。'};
+    }
+    const sourceTierLabel={official:'品牌官方',media:'新闻媒体',clue:'高热自媒体'};
+    function sourceSummary(node) {
+      const update=nodeUpdate(node);
+      if(state.platform==='Web')return {items:[],validCount:update.source?1:0,clueCount:0,label:'官网基线'};
+      const items=enrichmentEvidence[node.id]||[], valid=items.filter(item=>item.status!=='clue'), clues=items.filter(item=>item.status==='clue');
+      const mediaCount=valid.filter(item=>item.tier==='media').length;
+      const label=valid.some(item=>item.tier==='official')?'品牌官方补充':mediaCount>=2?'双媒体交叉核验':clues.length?'待官方复核':'仅 App Store 官方记录';
+      return {items,validCount:(update.source?1:0)+valid.length,clueCount:clues.length,label};
+    }
+    function evidenceChainHTML(node,update) {
+      const info=sourceSummary(node);
+      const anchor=update.source?`<div class="evidence-source"><span class="source-badge official">${state.platform==='Web'?'官网基线':'版本锚点'}</span><div><h5>${esc(update.sourceLabel||(state.platform==='Web'?'品牌官方网站':'Apple App Store'))}</h5><p>${esc(update.raw||update.latest)}</p><div class="source-meta"><span>${update.date}</span><span>${esc(update.version)}</span><span>${state.platform==='Web'?'第一方入口':'官方记录'}</span></div><a class="source-link" href="${update.source}" target="_blank" rel="noreferrer">查看来源 ↗</a></div></div>`:'';
+      const supplemental=info.items.map(item=>`<div class="evidence-source"><span class="source-badge ${item.tier}">${sourceTierLabel[item.tier]}</span><div><h5>${esc(item.title)}</h5><p>${esc(item.summary)}</p><div class="source-meta"><span>${item.date}</span><span>${esc(item.version)}</span><span>${item.status==='confirmed'?'官方确认':item.status==='corroborated'?'交叉佐证':'待核验线索'}</span>${item.engagement?`<span>${esc(item.engagement)}</span>`:''}</div><a class="source-link" href="${item.url}" target="_blank" rel="noreferrer">${esc(item.source)} ↗</a></div></div>`).join('');
+      const empty=!supplemental?`<div class="evidence-source"><span class="source-badge">检索结果</span><div><h5>暂无符合门槛的补充来源</h5><p>${state.platform==='Web'?'当前只保留官网入口基线；建立下一次同路径快照后再生成变化结论。':'已保留 App Store 版本记录；不会用超出 ±14 天、仅单家媒体或低热账号的内容猜测具体改动。'}</p></div></div>`:'';
+      return `<div class="evidence-chain"><div class="evidence-chain-head"><span>多源证据时间线</span><span>${info.validCount} 有效来源${info.clueCount?` · ${info.clueCount} 线索`:''}</span></div>${anchor}${supplemental}${empty}</div>`;
+    }
+    function nodeHeat(node) { return nodeUpdate(node).verified ? node.heat : 0; }
+    function renderGraph() {
+      const svg = $('#graphSvg');
+      if (!svg) return;
+      const nodes=visibleGraphNodes(), visibleIds=new Set(nodes.map(node=>node.id));
+      const activeEdges = graphEdges.filter(([a,b])=>visibleIds.has(a)&&visibleIds.has(b)).map(([a,b,type]) => {
+        const source=graphNodes.find(n=>n.id===a), target=graphNodes.find(n=>n.id===b);
+        if(!source||!target)return '';
+        const curve=(source.x+target.x)/2 + (type==='group'?18:type==='technology'?-15:0);
+        return `<path class="graph-edge ${type} ${state.layers.has(type)?'':'layer-off'}" data-edge="${type}" d="M${source.x},${source.y} Q${curve},${(source.y+target.y)/2-12} ${target.x},${target.y}"/>`;
+      }).join('');
+      const nodeMarkup = nodes.map(node => {
+        const update=nodeUpdate(node), heat=nodeHeat(node), color=recencyColor[update.recency], radius=14+heat*.15;
+        const logoUrl=node.logo||brandLogoUrls[node.brand];
+        return `<g class="graph-node ${update.verified?'updated':''} ${heat>=84?'hot':''}" data-node="${node.id}" tabindex="0" role="button" aria-label="${esc(nodeName(node))}，更新热度 ${heat}，${esc(update.area)}" transform="translate(${node.x} ${node.y})" style="--node-color:${color}"><circle class="halo" r="${radius+7}"/>${graphShape(node,radius,color)}<foreignObject x="${-radius*.58}" y="${-radius*.58}" width="${radius*1.16}" height="${radius*1.16}" pointer-events="none"><div class="node-logo-box" xmlns="http://www.w3.org/1999/xhtml"><span>${esc(node.initials)}</span>${logoUrl?`<img src="${logoUrl}" alt="" onload="this.previousElementSibling.hidden=true" onerror="this.remove()">`:''}</div></foreignObject><text text-anchor="middle" y="${radius+17}">${esc(nodeName(node))}</text></g>`;
+      }).join('');
+      svg.innerHTML = `<g id="graphViewport" transform="translate(600 360) scale(${state.zoom}) translate(-600 -360)">${activeEdges}${nodeMarkup}</g>`;
+      $$('.graph-node',svg).forEach(el => {
+        el.addEventListener('mouseenter', e => showGraphTooltip(e, el.dataset.node));
+        el.addEventListener('mousemove', e => positionTooltip(e));
+        el.addEventListener('mouseleave', hideGraphTooltip);
+        el.addEventListener('focus', e => showGraphTooltip(e, el.dataset.node, true));
+        el.addEventListener('blur', hideGraphTooltip);
+        el.addEventListener('click', () => openGraphDetail(el.dataset.node));
+        el.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();openGraphDetail(el.dataset.node);} });
+      });
+      const verified=nodes.filter(n=>nodeUpdate(n).verified).length;
+      const releaseRows=nodes.reduce((sum,node)=>sum+(nodeUpdate(node).verified?node.releaseCount:0),0);
+      $('#summaryTitle').textContent=state.platform==='Web'?`${nodes.filter(officialWebsiteUrl).length} 个官网入口`:verified?`${verified} 个节点有发布`:'尚无可比基线';
+      $('#summaryCopy').textContent=state.platform==='App'?`${marketLabel(state.market)} · ${releaseRows} 条最近 90 天官方版本记录。`:`${marketLabel(state.market)} · 最近核验 2026.09.14；第二次快照后才会生成变化。`;
+      $('#verifiedCount').textContent=verified;
+      $('#brandCount').textContent=new Set(graphNodes.map(node=>node.brand)).size;
+      $('#coverageStatus').innerHTML=state.platform==='App'?`${new Set(graphNodes.map(node=>node.brand)).size} 个品牌 · ${marketLabel(state.market)} ${nodes.length} 个节点<br>${releaseRows} 条 90 天官方版本记录`:`${new Set(graphNodes.map(node=>node.brand)).size} 个品牌 · ${marketLabel(state.market)} ${nodes.length} 个官网<br>官网基线核验 2026.09.14`;
+      renderHeating();
+      applyGraphSearch();
+    }
+    function renderHeating() {
+      const hottest=visibleGraphNodes().filter(n=>nodeUpdate(n).verified).sort((a,b)=>nodeHeat(b)-nodeHeat(a)).slice(0,3);
+      $('#heatingList').innerHTML=hottest.length?hottest.map(n=>`<div class="heating-row">${logoHTML(n)}<b>${nodeName(n)}</b><span>${nodeHeat(n)} · ${nodeUpdate(n).date.slice(5)}</span></div>`).join(''):'<div class="heating-row"><b>等待历史基线</b></div>';
+    }
+    function positionTooltip(event) {
+      const shell=$('#mapShell'), tip=$('#graphTooltip'), rect=shell.getBoundingClientRect();
+      let x=(event.clientX||rect.left+rect.width/2)-rect.left+14, y=(event.clientY||rect.top+rect.height/2)-rect.top+14;
+      if(x+240>rect.width)x-=252; if(y+150>rect.height)y-=162;
+      tip.style.left=`${Math.max(8,x)}px`; tip.style.top=`${Math.max(8,y)}px`;
+    }
+    function showGraphTooltip(event,id,keyboard=false) {
+      const node=graphNodes.find(n=>n.id===id), update=nodeUpdate(node), tip=$('#graphTooltip');
+      const sourceInfo=sourceSummary(node), supplemental=enrichmentHeadline[node.id];
+      tip.innerHTML=`<div class="tooltip-head">${logoHTML(node)}<div><strong>${nodeName(node)}</strong><small>${marketLabel(node.scope)} · ${node.market} · ${update.verified?'更新热度 '+nodeHeat(node):state.platform==='Web'?'官网基线':'未计热度'}</small></div></div><div class="tooltip-update"><b>${update.verified?`${update.date} · ${update.area}`:state.platform==='Web'?`${update.date} · ${update.area}`:update.area}</b><p>${update.latest}</p></div>${supplemental&&state.platform==='App'?`<div class="source-summary"><b>${esc(sourceInfo.label)}</b><span>${esc(supplemental)}</span></div>`:''}<div class="tooltip-foot"><span>${state.platform} · ${state.platform==='Web'?'基线待建立':`${sourceInfo.validCount} 有效来源${sourceInfo.clueCount?` · ${sourceInfo.clueCount} 线索`:''}`}</span><span>点击查看${state.platform==='Web'?'官网':'证据'} →</span></div>`;
+      tip.classList.add('show');
+      if(keyboard){ const el=event.currentTarget.getBoundingClientRect(), rect=$('#mapShell').getBoundingClientRect(); positionTooltip({clientX:el.right,clientY:el.top+el.height/2}); } else positionTooltip(event);
+    }
+    function hideGraphTooltip(){ $('#graphTooltip').classList.remove('show'); }
+    function openGraphDetail(id) {
+      const node=graphNodes.find(n=>n.id===id), update=nodeUpdate(node), detail=$('#graphDetail');
+      const visibleIds=new Set(visibleGraphNodes().map(item=>item.id));
+      const related=graphEdges.filter(([a,b])=>(a===id||b===id)&&visibleIds.has(a)&&visibleIds.has(b)).map(([a,b,type])=>{const other=graphNodes.find(n=>n.id===(a===id?b:a));return `<div class="relation-row" style="--layer-color:${type==='group'?'#6f8edf':type==='technology'?'#68a97a':type==='experience'?'#e59a54':'#9ba298'}"><i></i><b>${esc(nodeName(other))}</b><span>${layerLabel[type]}</span></div>`;}).join('');
+      const sourceLink=update.source?`<a class="source-link" href="${update.source}" target="_blank" rel="noreferrer">${state.platform==='Web'?'访问对应市场官网':'查看 Apple 官方记录'} ↗</a>`:'';
+      const factors=heatBreakdown(node);
+      const impactClass=nodeHeat(node)>=85?'high':nodeHeat(node)>=70?'medium':'low';
+      const dateLabel=state.platform==='Web'?'最近核验':'发布日期', versionLabel=state.platform==='Web'?'基线版本':'最新版本', volumeLabel=state.platform==='Web'?'历史快照':'90 天版本';
+      const sourceInfo=sourceSummary(node), evidenceChain=evidenceChainHTML(node,update), supplemental=enrichmentHeadline[node.id];
+      const sourceCallout=supplemental&&state.platform==='App'?`<div class="source-summary"><b>${esc(sourceInfo.label)}</b><span>${esc(supplemental)}</span></div>`:'';
+      detail.innerHTML=`
+        <div class="graph-detail-head">${logoHTML(node)}<div><h2>${nodeName(node)}</h2><p>${marketLabel(node.scope)} · ${node.market} · ${state.platform} · ${state.platform==='Web'?'基线待建立':recencyLabel[update.recency]}</p></div><button class="icon-btn" id="closeGraphDetail" aria-label="关闭详情">${icon('close')}</button></div>
+        <div class="heat-panel"><div class="heat-value"><strong>${nodeHeat(node)}</strong><b>${update.verified?'更新热度 · 研究评分':state.platform==='Web'?'官网变化不计分':'不计分'}</b></div><p>${update.verified?`新鲜度 ${factors.recency}/50 · 具体度 ${factors.impact}/35 · 发布频次 ${factors.volume}/15`:state.platform==='Web'?'当前只有首次官网基线；需要第二个时间点才能计算变化与热度。':'当前没有可计分的一手发布记录。'}</p></div>
+        <div class="detail-tabs"><button class="detail-tab active" data-graph-tab="updates">更新详情</button><button class="detail-tab" data-graph-tab="evidence">多源证据 ${sourceInfo.validCount}</button><button class="detail-tab" data-graph-tab="relations">关系</button></div>
+        <div class="detail-pane active" id="graph-pane-updates"><article class="update-evidence"><div class="update-evidence-head"><span class="impact ${impactClass}">${update.verified?recencyLabel[update.recency]:state.platform==='Web'?'官网基线':'未验证'}</span><span>${state.platform} · ${update.area}</span></div><h4>${update.latest}</h4><p>${update.verified?'以下结论以 App Store 版本记录为锚点；补充来源按证据等级独立展示。':state.platform==='Web'?'官网入口为品牌第一方地址；当前不声称发生了页面或交互变化。':'当前没有足够的一手证据形成变化结论。'}</p><div class="evidence-pills"><span class="platform-tag">${update.specificity}</span>${update.verified?`<span class="platform-tag">v${update.version}</span>`:''}</div>${sourceLink}</article>${sourceCallout}<div class="demo-note">${state.platform==='Web'?'Web 前后对比需要持续采集同一路径的页面与录屏；本静态快照尚未建立该基线。':'高热自媒体只作线索，不改变更新热度；只有品牌官方或双媒体交叉印证后，才升级为正式证据。'}</div></div>
+        <div class="detail-pane" id="graph-pane-evidence"><article class="update-evidence"><div class="evidence-grid"><span>发布市场</span><b>${marketLabel(node.scope)} · ${node.market}</b><span>${dateLabel}</span><b>${update.date}</b><span>${versionLabel}</span><b>${update.version}</b><span>${volumeLabel}</span><b>${state.platform==='Web'?'1 个基线':update.verified?`${node.releaseCount} 条`:'—'}</b><span>当前锚点</span><b>${update.sourceLabel||'暂无'}</b><span>证据状态</span><b>${sourceInfo.label}</b></div>${update.raw?`<h4>${state.platform==='Web'?'监测说明':'官方发布说明'}</h4><p>${esc(update.raw)}</p>`:'<p>暂无可展示的官方发布说明。</p>'}${sourceLink}</article>${evidenceChain}</div>
+        <div class="detail-pane" id="graph-pane-relations"><div class="relation-list">${related||'<div class="relation-row"><b>暂无已建关系</b></div>'}</div><div class="demo-note">集团隶属与技术合作是公开事实层；竞品定位与体验相似属于研究分析层，不代表品牌官方结论。</div></div>`;
+      detail.classList.add('open');
+      $('#closeGraphDetail').addEventListener('click',()=>detail.classList.remove('open'));
+      $$('[data-graph-tab]').forEach(btn=>btn.addEventListener('click',()=>{ $$('[data-graph-tab]').forEach(b=>b.classList.remove('active')); $$('[id^="graph-pane-"]').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); $(`#graph-pane-${btn.dataset.graphTab}`).classList.add('active'); }));
+    }
+    function applyGraphSearch() {
+      const input=$('#globalSearch'); if(!input)return;
+      const q=input.value.trim().toLowerCase();
+      $$('.graph-node').forEach(el=>{ const n=graphNodes.find(x=>x.id===el.dataset.node), u=nodeUpdate(n), extra=(enrichmentEvidence[n.id]||[]).map(item=>`${item.title}${item.summary}${item.source}`).join(''); el.classList.toggle('dimmed',!!q&&!`${nodeName(n)}${n.market}${u.area}${u.latest}${extra}`.toLowerCase().includes(q)); });
+    }
+    function setZoom(next) { state.zoom=Math.max(.72,Math.min(1.45,next)); const viewport=$('#graphViewport'); if(viewport)viewport.setAttribute('transform',`translate(600 360) scale(${state.zoom}) translate(-600 -360)`); }
+
+    function renderCompare() {
+      const mode=$('#journeySelect').value;
+      const isSpecific=u=>!u.updates.App.specificity.includes('维护')&&!u.updates.App.specificity.includes('笼统');
+      let data=visibleGraphNodes().filter(n=>n.updates.App.verified);
+      if(mode==='官方明确披露')data=data.filter(isSpecific);
+      if(mode==='仅维护性说明')data=data.filter(n=>!isSpecific(n));
+      data=data.sort((a,b)=>b.heat-a.heat).slice(0,8);
+      $('#competitorGrid').innerHTML = data.map(d => { const u=d.updates.App; return `<article class="competitor-card"><div class="competitor-head">${logoHTML(d)}<div><strong>${nodeName(d)}</strong><small>${marketLabel(d.scope)} · ${d.market} · v${u.version}</small></div></div><div class="journey-mini"><div class="journey-step accent"><b>${u.area}</b><span>${u.latest}</span></div><a class="source-link" href="${u.source}" target="_blank" rel="noreferrer">核验官方发布说明 ↗</a></div><div class="score-strip"><div><strong>${d.releaseCount}</strong><span>90 天版本</span></div><div><strong>${u.date.slice(5)}</strong><span>最近发布</span></div><div><strong>${d.heat}</strong><span>更新热度</span></div></div></article>`; }).join('');
+      const nodes=visibleGraphNodes(), verified=nodes.filter(n=>n.updates.App.verified), releases=verified.reduce((sum,node)=>sum+node.releaseCount,0);
+      const notes={'官方明确披露':`${marketLabel(state.market)}中，这些记录可确认具体功能、页面问题或体验方向，但仍不能替代前后截图。`,'仅维护性说明':`${marketLabel(state.market)}中，这些记录只证明版本发布；官方没有公开足够细节，不能据此判断界面或流程。`,'全部官方记录':`${marketLabel(state.market)}当前核验 ${verified.length} 个发布节点、${releases} 条最近 90 天官方版本记录；热度仅用于研究优先级排序。`};
+      $('#compareFinding').textContent=notes[mode];
+    }
+    function renderBrands(query = '') {
+      const q = query.trim().toLowerCase();
+      const all = visibleGraphNodes().filter(n => {const extra=(enrichmentEvidence[n.id]||[]).map(item=>`${item.title}${item.summary}${item.source}`).join('');return !q || `${nodeName(n)}${n.market}${n.updates.App.latest}${extra}`.toLowerCase().includes(q);});
+      $('#brandGrid').innerHTML = all.map(n => {const u=n.updates.App, website=officialWebsiteUrl(n);return `<article class="brand-card"><div class="brand-card-top">${logoHTML(n)}<div><h3>${esc(nodeName(n))}</h3><small>${marketLabel(n.scope)} · ${esc(n.market)} · ${u.verified?'官方记录已核验':'窗口内暂无证据'}</small></div></div><div class="brand-platforms"><span class="platform-tag ${u.verified?'live':''}">${u.verified?'APP 官方记录':'APP 暂无样本'}</span><span class="platform-tag">WEB 基线 2026.09.14</span></div><div class="brand-foot"><span>${u.verified?`v${u.version}`:'未生成变化结论'}</span><span>${u.date}</span></div>${website?`<a class="source-link" href="${website}" target="_blank" rel="noreferrer">访问对应市场官网 ↗</a>`:''}</article>`;}).join('');
+    }
+    function renderLibrary() {
+      $('#libraryGrid').innerHTML = libraryItems.map(item => {const links=[{label:item.sourceLabel||'查看 Apple 官方记录',url:item.source},...(item.extraSources||[])];return `<article class="library-card"><div class="pattern-preview" style="--preview:${item.color}"><div class="pattern-window"><i></i><b></b><b></b></div></div><div class="library-body"><div class="library-meta"><span>${item.type}</span><span>${item.date}</span></div><h3>${item.title}</h3><p>${item.desc}</p><div class="tag-row">${item.tags.map(t=>`<span class="platform-tag">${t}</span>`).join('')}</div>${links.map(link=>`<a class="source-link" href="${link.url}" target="_blank" rel="noreferrer" style="margin-right:10px">${link.label} ↗</a>`).join('')}</div></article>`;}).join('');
+    }
+    function switchView(inputView) {
+      state.nav = inputView;
+      let view = inputView;
+      if (view === 'app' || view === 'web') { state.platform = view === 'app' ? 'App' : 'Web'; view = 'radar'; }
+      state.view = view;
+      $$('.view').forEach(v => v.classList.remove('active')); $(`#view-${view}`).classList.add('active');
+      $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === inputView));
+      $$('.seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.platform===state.platform));
+      const labels = {radar:['全球车企动态图谱','App Store 为锚点，补充官方媒体、双媒体佐证与高热线索'],app:['App 体验图谱','最近 90 天多源更新证据快照'],web:['Web 体验图谱','尚未建立连续官网快照，不生成未经核验的变化'],compare:['官方发布横向对比','只比较可核验的版本、时间与发布说明'],brands:['品牌库','40 个汽车品牌，按国内与海外发布市场分别观察'],library:['多源证据与线索库','官方确认、双媒体佐证与待核验线索分层展示']};
+      $('#pageTitle').textContent = labels[inputView][0]; $('#pageSubtitle').textContent = labels[inputView][1];
+      $('#globalSearchWrap').classList.toggle('hidden', view !== 'radar');
+      if(view==='radar') renderGraph();
+    }
+    function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(()=>toast.classList.remove('show'), 2200); }
+    function switchMarket(market) {
+      state.market=market;
+      $$('[data-market]').forEach(button=>button.classList.toggle('active',button.dataset.market===market));
+      $('#graphDetail').classList.remove('open');
+      renderGraph(); renderCompare(); renderBrands($('#brandSearch').value);
+      showToast(`已切换至${marketLabel(market)}；同品牌使用对应市场的独立官方记录`);
+    }
+    function openModal() { $('#addModal').classList.add('open'); }
+    function closeModal() { $('#addModal').classList.remove('open'); }
+
+    $$('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+    $$('.seg-btn').forEach(btn => btn.addEventListener('click', () => { state.platform=btn.dataset.platform; $$('.seg-btn').forEach(b=>b.classList.toggle('active',b===btn)); $('#graphDetail').classList.remove('open'); renderGraph(); }));
+    $$('[data-market]').forEach(btn => btn.addEventListener('click', () => switchMarket(btn.dataset.market)));
+    $$('.layer-btn').forEach(btn => btn.addEventListener('click', () => { const layer=btn.dataset.layer; state.layers.has(layer)?state.layers.delete(layer):state.layers.add(layer); btn.classList.toggle('active',state.layers.has(layer)); $$('.graph-edge').filter(e=>e.dataset.edge===layer).forEach(e=>e.classList.toggle('layer-off',!state.layers.has(layer))); }));
+    $('#globalSearch').addEventListener('input', applyGraphSearch);
+    $('#brandSearch').addEventListener('input', e => renderBrands(e.target.value));
+    $('#refreshBtn').addEventListener('click', () => { showToast('这是 2026.09.14 静态快照；没有后台自动巡检'); $('#refreshBtn svg').style.transform='rotate(180deg)'; setTimeout(()=>$('#refreshBtn svg').style.transform='',600); });
+    $('#zoomIn').addEventListener('click',()=>setZoom(state.zoom+.12));
+    $('#zoomOut').addEventListener('click',()=>setZoom(state.zoom-.12));
+    $('#zoomFit').addEventListener('click',()=>setZoom(1));
+    $('#periodSelect').addEventListener('change',()=>showToast('当前公开版固定为最近 90 天快照'));
+    ['addBrandTop','addBrandPage'].forEach(id => $(`#${id}`).addEventListener('click', openModal));
+    ['closeModal','cancelModal'].forEach(id => $(`#${id}`).addEventListener('click', closeModal));
+    $('#addModal').addEventListener('click', e => { if(e.target.id==='addModal') closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+    $('#saveCompare').addEventListener('click', () => showToast('当前筛选已保留在页面；静态公开版不会写入服务器'));
+    $('#exportLibrary').addEventListener('click', openModal);
+    $('#journeySelect').addEventListener('change', renderCompare);
+
+    renderGraph(); renderCompare(); renderBrands(); renderLibrary();
+  </script>
+</body>
+</html>
